@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, Copy, AlertTriangle, Search } from 'lucide-react'
+import { CheckCircle2, Copy, Search } from 'lucide-react'
 import type { ReportSubmissionResult } from '../types/report.types'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -12,7 +12,7 @@ interface ReportReceiptProps {
 }
 
 export const ReportReceipt: React.FC<ReportReceiptProps> = ({ result, onReset }) => {
-  const [copied, setCopied] = React.useState(false)
+  const [copied, setCopied] = useState(false)
 
   const copyKey = () => {
     navigator.clipboard.writeText(result.caseReferenceKey)
@@ -21,56 +21,56 @@ export const ReportReceipt: React.FC<ReportReceiptProps> = ({ result, onReset })
   }
 
   return (
-    <Card className="max-w-2xl mx-auto text-center p-8 space-y-6">
-      <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
-        <CheckCircle2 className="w-9 h-9" />
+    <Card className="max-w-xl mx-auto text-center p-8 space-y-6 bg-white border border-slate-200 shadow-sm rounded-2xl">
+      {/* Success Icon */}
+      <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+        <CheckCircle2 className="w-8 h-8" />
       </div>
 
+      {/* Heading */}
       <div className="space-y-1">
         <h2 className="text-2xl font-bold tracking-tight text-slate-900">
-          Report Transmitted Securely
+          Report Submitted
         </h2>
-        <p className="text-sm text-slate-600">
-          Your disclosure has been encrypted and assigned to the Compliance Review Committee.
+        <p className="text-sm text-slate-500">
+          Save your tracking key to follow the progress of your report.
         </p>
       </div>
 
-      {/* Secret Case Access Token / Reference Key */}
+      {/* Tracking Key Box */}
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 text-left space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase font-semibold text-slate-500 tracking-wider">
-            Your Anonymous Case Key
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            Tracking Key
           </span>
           <button
             onClick={copyKey}
             type="button"
-            className="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1 cursor-pointer"
+            className="text-xs font-semibold text-cbe-purple hover:text-cbe-purple-700 flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded border border-slate-200"
           >
             <Copy className="w-3.5 h-3.5" />
-            <span>{copied ? 'Copied!' : 'Copy Key'}</span>
+            <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
         </div>
 
-        <div className="text-2xl sm:text-3xl font-mono font-bold text-indigo-600 select-all tracking-wider py-1">
+        <div className="text-2xl sm:text-3xl font-mono font-bold text-cbe-purple select-all tracking-wider">
           {result.caseReferenceKey}
-        </div>
-
-        <div className="flex items-start gap-2 pt-2 border-t border-slate-200 text-xs text-amber-800 bg-amber-50/50 p-2.5 rounded-lg">
-          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-          <span>
-            <strong>Crucial:</strong> Write down or copy this key. Because this system is zero-knowledge and retains no personal identity records, lost keys cannot be recovered by anyone.
-          </span>
         </div>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
         <Link to={`${ROUTES.TRACK}?case=${result.caseReferenceKey}`}>
-          <Button variant="primary">
+          <Button className="bg-cbe-purple hover:bg-cbe-purple-700 text-white font-medium flex items-center gap-2">
             <Search className="w-4 h-4" />
-            <span>Track Case Status Now</span>
+            <span>Track Status</span>
           </Button>
         </Link>
-        <Button variant="outline" onClick={onReset}>
+        <Button
+          variant="outline"
+          onClick={onReset}
+          className="border-slate-300 text-slate-700 hover:bg-slate-50 font-medium"
+        >
           Submit Another Report
         </Button>
       </div>

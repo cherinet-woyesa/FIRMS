@@ -1,20 +1,22 @@
-import type { ReportSubmissionInput, ReportSubmissionResult } from '../types/report.types'
+import type { CorruptionReportInput, ReportSubmissionResult } from '../types/report.types'
 
 /**
- * Submit encrypted whistleblower report to the backend
+ * Submit encrypted corruption report to the ethics & compliance oversight system
  */
 export async function submitWhistleblowerReport(
-  payload: ReportSubmissionInput
+  payload: CorruptionReportInput
 ): Promise<ReportSubmissionResult> {
-  // In production: const { data } = await apiClient.post<ApiResponse<ReportSubmissionResult>>('/reports', payload)
+  // Simulate cryptographic encryption delay and network submission
   await new Promise((resolve) => setTimeout(resolve, 1000))
 
-  const randomRef = `WB-${Math.floor(100000 + Math.random() * 900000)}`
+  const randomRef = `CBE-ETH-${Math.floor(100000 + Math.random() * 900000)}`
 
   return {
     caseReferenceKey: randomRef,
     submittedAt: new Date().toISOString(),
-    category: payload.category,
+    category: payload.corruptionType || payload.category || 'Bribery, Kickbacks & Corruption',
     trackingUrl: `/track?case=${randomRef}`,
+    reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
+    divisionDepartmentBranch: payload.divisionDepartmentBranch || payload.targetDepartment,
   }
 }

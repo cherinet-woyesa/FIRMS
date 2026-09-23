@@ -59,7 +59,7 @@ export const LoginForm: React.FC = () => {
       <Button
         type="submit"
         isLoading={isSubmitting}
-        className="w-full mt-2 bg-indigo-600 hover:bg-indigo-700 text-white"
+        className="w-full mt-2 bg-cbe-purple hover:bg-cbe-purple-600 text-white"
       >
         Sign In to Officer Desk
       </Button>
