@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "Whistleblower Portal",
+    "description": "Secure, anonymous reporting platform."
+  },
+  "nav": {
+    "submitReport": "Submit Report",
+    "trackCase": "Track Case",
+    "officerLogin": "Officer Login"
+  },
+  "common": {
+    "loading": "Loading...",
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save"
+  }
+}

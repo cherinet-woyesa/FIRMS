@@ -1,0 +1,17 @@
+{
+  "app": {
+    "title": "የጥቆማ ማቅረቢያ ፖርታል",
+    "description": "ደህንነቱ የተጠበቀ፣ ማንነትን የማይገልጽ የጥቆማ መድረክ።"
+  },
+  "nav": {
+    "submitReport": "ጥቆማ አቅርብ",
+    "trackCase": "ጉዳይዎን ይከታተሉ",
+    "officerLogin": "የመርማሪ መግቢያ"
+  },
+  "common": {
+    "loading": "እየጫነ ነው...",
+    "submit": "አስገባ",
+    "cancel": "ይቅር",
+    "save": "አስቀምጥ"
+  }
+}
