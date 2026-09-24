@@ -1,10 +1,20 @@
 import type { CaseStatusId, CasePriorityId } from '@/constants/caseStatus'
 
+export type SystemRole =
+  | 'PRESIDENT'
+  | 'VP_IA'
+  | 'FI_DIRECTOR'
+  | 'FI_MANAGER_OPS'
+  | 'FI_MANAGER_FOLLOWUP'
+  | 'TEAM_LEAD_AUDITOR'
+  | 'SARC_SECRETARY'
+  | 'ADMIN'
+
 export interface User {
   id: string
   name: string
   email: string
-  role: 'COMPLIANCE_OFFICER' | 'LEAD_INVESTIGATOR' | 'ADMIN'
+  role: SystemRole | 'COMPLIANCE_OFFICER' | 'LEAD_INVESTIGATOR' | 'ADMIN'
   department: string
 }
 

@@ -1,5 +1,5 @@
 import React from 'react'
-import { ShieldCheck, Lock } from 'lucide-react'
+import { ShieldCheck } from 'lucide-react'
 
 export const DashboardFooter: React.FC = () => {
   return (
@@ -12,10 +12,7 @@ export const DashboardFooter: React.FC = () => {
       </div>
 
       <div className="flex items-center gap-3 text-[11px] text-slate-400">
-        <span className="flex items-center gap-1">
-          <Lock className="w-3 h-3 text-cbe-gold" />
-          <span>Strictly Confidential &amp; Legally Privileged</span>
-        </span>
+
         <span className="text-slate-300">•</span>
         <span>© {new Date().getFullYear()} CBE All Rights Reserved</span>
       </div>

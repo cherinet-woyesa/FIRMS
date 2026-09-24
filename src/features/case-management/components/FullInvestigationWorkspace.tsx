@@ -3,19 +3,15 @@ import {
   FileText,
   Shield,
   Search,
-  Users,
   CheckCircle2,
   Lock,
   Plus,
   Trash2,
-  Send,
-  AlertTriangle,
   ArrowRight,
   ArrowLeft,
   Building,
   Scale,
   Briefcase,
-  FileCheck2,
 } from 'lucide-react'
 import type {
   FullInvestigationState,
@@ -28,7 +24,6 @@ import type {
 } from '../types/investigation.types'
 import { FinalInvestigationReportView } from './FinalInvestigationReportView'
 import { Button } from '@/components/ui/Button'
-import { Badge } from '@/components/ui/Badge'
 
 interface Props {
   investigation: FullInvestigationState
@@ -54,7 +49,6 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
   const [step1Tab, setStep1Tab] = useState<'authorization' | 'scope'>('authorization')
   const [step2Tab, setStep2Tab] = useState<'seized' | 'forensics' | 'inquiries'>('seized')
   const [step3Tab, setStep3Tab] = useState<'neutral' | 'key' | 'subject'>('neutral')
-  const [step5Tab, setStep5Tab] = useState<'disciplinary' | 'systemic' | 'signoff'>('disciplinary')
 
   const updateState = (updater: (prev: FullInvestigationState) => FullInvestigationState) => {
     const next = updater(investigation)
@@ -1072,7 +1066,12 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
         <div className="space-y-4">
           <FinalInvestigationReportView
             report={investigation.report}
-            onChangeReport={(rep) => updateState((prev) => ({ ...prev, report: rep }))}
+            onChangeReport={(field, val) =>
+              updateState((prev) => ({
+                ...prev,
+                report: { ...prev.report, [field]: val },
+              }))
+            }
             isEditable={true}
           />
 

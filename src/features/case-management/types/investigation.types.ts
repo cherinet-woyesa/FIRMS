@@ -70,6 +70,8 @@ export interface FactualFindingItem {
   evidence: string
 }
 
+export type FindingItem = FactualFindingItem
+
 export interface ExhibitItem {
   id: string
   exhibitLetter: string

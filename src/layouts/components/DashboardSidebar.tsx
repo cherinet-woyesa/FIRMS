@@ -22,9 +22,9 @@ export const DashboardSidebar: React.FC = () => {
   ]
 
   return (
-    <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800">
+    <aside className="w-64 h-screen sticky top-0 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800 z-30 select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-800">
+      <div className="h-16 shrink-0 flex items-center gap-3 px-6 border-b border-slate-800">
         <Shield className="w-6 h-6 text-cbe-gold shrink-0" />
         <div className="flex flex-col">
           <span className="font-bold text-sm tracking-tight text-white">ComplianceDesk</span>
@@ -34,8 +34,8 @@ export const DashboardSidebar: React.FC = () => {
         </div>
       </div>
 
-      {/* Nav Links */}
-      <nav className="flex-1 px-4 py-6 space-y-1.5">
+      {/* Nav Links - Scrolls internally only when content exceeds sidebar height */}
+      <nav className="flex-1 overflow-y-auto px-4 py-6 space-y-1.5">
         {navLinks.map((item) => {
           const Icon = item.icon
           const isActive = location.pathname === item.to
@@ -57,7 +57,7 @@ export const DashboardSidebar: React.FC = () => {
       </nav>
 
       {/* User Profile & Logout */}
-      <div className="p-4 border-t border-slate-800 bg-slate-950/40">
+      <div className="shrink-0 p-4 border-t border-slate-800 bg-slate-950/40">
         <div className="flex items-center justify-between">
           <div className="truncate pr-2">
             <p className="text-xs font-semibold text-white truncate">{user?.name || 'Lead Compliance Officer'}</p>
