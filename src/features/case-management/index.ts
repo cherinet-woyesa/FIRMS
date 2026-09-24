@@ -1,4 +1,7 @@
 export * from './types/caseManagement.types'
+export * from './types/triage.types'
 export * from './api/getCases'
 export * from './components/CaseTable'
 export * from './components/CaseManagementPage'
+export * from './components/InvestigationWorkspace'
+export * from './components/PreliminaryAssessmentReportView'

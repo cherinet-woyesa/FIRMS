@@ -70,11 +70,9 @@ export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
       {/* Header */}
       <div className="border-b border-slate-200 pb-3">
         <h2 className="text-xl font-bold text-slate-900">
-          Section 4: Supporting Evidence and Witnesses
+          Supporting Evidence and Witnesses
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          List tangible evidence and witnesses to support your report.
-        </p>
+
       </div>
 
       {/* Evidence in possession */}
@@ -115,11 +113,10 @@ export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
-          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${
-            isDragging
+          className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${isDragging
               ? 'border-cbe-purple bg-cbe-purple-50/50'
               : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'
-          }`}
+            }`}
         >
           <div className="w-10 h-10 rounded-full bg-cbe-purple-100 flex items-center justify-center text-cbe-purple">
             <UploadCloud className="w-5 h-5" />

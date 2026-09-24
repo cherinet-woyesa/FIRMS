@@ -19,11 +19,9 @@ export const StepIncidentDetails: React.FC<StepProps> = ({ form }) => {
       {/* Header */}
       <div className="border-b border-slate-200 pb-3">
         <h2 className="text-xl font-bold text-slate-900">
-          Section 2: Details of the Incident(s)
+          Details of the Incident(s)
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Focus on facts, not assumptions or opinions.
-        </p>
+
       </div>
 
       {/* Type of Corruption */}

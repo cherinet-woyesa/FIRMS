@@ -18,5 +18,6 @@ export async function submitWhistleblowerReport(
     trackingUrl: `/track?case=${randomRef}`,
     reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
     divisionDepartmentBranch: payload.divisionDepartmentBranch || payload.targetDepartment,
+    reportRecipient: payload.reportRecipient || 'Risk Management & Compliance Division',
   }
 }
