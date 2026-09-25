@@ -9,6 +9,7 @@ import {
   Settings,
   LogOut,
   Users,
+  Lock,
   X,
 } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
@@ -33,6 +34,8 @@ export const DashboardSidebar: React.FC<Props> = ({ mobileOpen = false, onCloseM
     { label: 'Overview', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { label: 'Case Registry', to: ROUTES.CASES, icon: Inbox },
     { label: 'Teams', to: ROUTES.TEAM_CREATION, icon: Users },
+    { label: 'User Management', to: ROUTES.USERS, icon: Users },
+    { label: 'Access Management', to: ROUTES.ACCESS_MANAGEMENT, icon: Lock },
     { label: 'Report Repository', to: ROUTES.REPORT_REPOSITORY, icon: FolderSearch },
     { label: 'Audit Logs', to: ROUTES.AUDIT_LOGS, icon: History },
     { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
