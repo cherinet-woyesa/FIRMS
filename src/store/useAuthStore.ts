@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import type { User, SystemRole } from '@/types/common.types'
-import { SYSTEM_ROLES } from '@/constants/systemRoles'
+
 
 interface AuthState {
   user: User | null
@@ -36,15 +36,18 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setRole: (role: SystemRole) => {
     sessionStorage.setItem('active_system_role', role)
-    const roleMeta = SYSTEM_ROLES[role]
+    
+    // Generate a default title from the role name since SYSTEM_ROLES was removed
+    const title = role.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
+    
     set({
       currentRole: role,
       user: {
         id: `usr-${role.toLowerCase()}`,
-        name: roleMeta.title,
+        name: title,
         email: `${role.toLowerCase()}@cbe.com.et`,
         role,
-        department: roleMeta.department,
+        department: 'Ethics & Internal Audit Directorate',
       },
     })
   },
