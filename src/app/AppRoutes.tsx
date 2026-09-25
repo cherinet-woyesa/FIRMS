@@ -11,6 +11,7 @@ import { CaseTracker } from '@/features/case-tracking'
 import { LoginForm, ProtectedRoute } from '@/features/auth'
 import { CaseManagementPage, InvestigationWorkspace } from '@/features/case-management'
 import { TeamCreationPage } from '@/features/team-management'
+import { ReportRepositoryPage } from '@/features/report-repository'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -34,6 +35,7 @@ export const AppRoutes: React.FC = () => {
           <Route path={ROUTES.CASES} element={<CaseManagementPage />} />
           <Route path="/dashboard/cases/:id" element={<InvestigationWorkspace />} />
           <Route path={ROUTES.TEAM_CREATION} element={<TeamCreationPage />} />
+          <Route path={ROUTES.REPORT_REPOSITORY} element={<ReportRepositoryPage />} />
           <Route
             path={ROUTES.AUDIT_LOGS}
             element={

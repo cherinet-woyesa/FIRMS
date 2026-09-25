@@ -588,6 +588,36 @@ const MOCK_DETAILED_CASES: Record<string, CaseDetailedInvestigation> = {
   },
 }
 
+const SUBMITTED_CASES_KEY = 'cbe_submitted_cases_v1'
+
+function getStoredDetailedCases(): Record<string, CaseDetailedInvestigation> {
+  try {
+    const raw = localStorage.getItem(SUBMITTED_CASES_KEY)
+    if (!raw) {
+      localStorage.setItem(SUBMITTED_CASES_KEY, JSON.stringify(MOCK_DETAILED_CASES))
+      return MOCK_DETAILED_CASES
+    }
+    return JSON.parse(raw)
+  } catch (err) {
+    console.error('Error reading cases from storage:', err)
+    return MOCK_DETAILED_CASES
+  }
+}
+
+function saveStoredDetailedCases(cases: Record<string, CaseDetailedInvestigation>): void {
+  try {
+    localStorage.setItem(SUBMITTED_CASES_KEY, JSON.stringify(cases))
+  } catch (err) {
+    console.error('Error saving cases to storage:', err)
+  }
+}
+
+export function addSubmittedCaseToStorage(newCase: CaseDetailedInvestigation): void {
+  const allCases = getStoredDetailedCases()
+  allCases[newCase.id] = newCase
+  saveStoredDetailedCases(allCases)
+}
+
 export const MOCK_REGISTRY_CASES: CaseSummary[] = Object.values(MOCK_DETAILED_CASES).map((c) => ({
   id: c.id,
   referenceKey: c.referenceKey,
@@ -603,12 +633,25 @@ export const MOCK_REGISTRY_CASES: CaseSummary[] = Object.values(MOCK_DETAILED_CA
 
 export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  return MOCK_REGISTRY_CASES
+  const cases = getStoredDetailedCases()
+  return Object.values(cases).map((c) => ({
+    id: c.id,
+    referenceKey: c.referenceKey,
+    category: c.category,
+    targetDepartment: c.targetDepartment,
+    priority: c.priority,
+    status: c.status,
+    submittedAt: c.submittedAt,
+    updatedAt: c.updatedAt,
+    isAnonymous: c.isAnonymous,
+    assignedTo: c.assignedTo,
+  }))
 }
 
 export async function fetchCaseById(id: string): Promise<CaseDetailedInvestigation | null> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  return MOCK_DETAILED_CASES[id] || MOCK_DETAILED_CASES['case-01']
+  const cases = getStoredDetailedCases()
+  return cases[id] || cases['case-01'] || null
 }
 
 export async function updateCaseTriage(
@@ -617,11 +660,13 @@ export async function updateCaseTriage(
   report: PreliminaryAssessmentReport
 ): Promise<boolean> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  if (MOCK_DETAILED_CASES[id]) {
-    MOCK_DETAILED_CASES[id].triageWorkflow = triageWorkflow
-    MOCK_DETAILED_CASES[id].preliminaryAssessmentReport = report
-    MOCK_DETAILED_CASES[id].status = 'INVESTIGATION_ACTIVE'
-    MOCK_DETAILED_CASES[id].updatedAt = new Date().toISOString()
+  const cases = getStoredDetailedCases()
+  if (cases[id]) {
+    cases[id].triageWorkflow = triageWorkflow
+    cases[id].preliminaryAssessmentReport = report
+    cases[id].status = 'INVESTIGATION_ACTIVE'
+    cases[id].updatedAt = new Date().toISOString()
+    saveStoredDetailedCases(cases)
   }
   return true
 }
@@ -631,12 +676,14 @@ export async function updateCaseFullInvestigation(
   fullInvestigation: FullInvestigationState
 ): Promise<boolean> {
   await new Promise((resolve) => setTimeout(resolve, 300))
-  if (MOCK_DETAILED_CASES[id]) {
-    MOCK_DETAILED_CASES[id].fullInvestigation = fullInvestigation
-    MOCK_DETAILED_CASES[id].status = fullInvestigation.closure.caseClosureFormal
+  const cases = getStoredDetailedCases()
+  if (cases[id]) {
+    cases[id].fullInvestigation = fullInvestigation
+    cases[id].status = fullInvestigation.closure.caseClosureFormal
       ? 'RESOLVED'
       : 'INVESTIGATION_ACTIVE'
-    MOCK_DETAILED_CASES[id].updatedAt = new Date().toISOString()
+    cases[id].updatedAt = new Date().toISOString()
+    saveStoredDetailedCases(cases)
   }
   return true
 }

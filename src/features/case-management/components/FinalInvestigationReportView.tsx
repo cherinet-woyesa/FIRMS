@@ -4,6 +4,10 @@ import {
   Download,
   Plus,
   Trash2,
+  FileText,
+  MessageSquare,
+  Lock,
+  PenTool,
 } from 'lucide-react'
 import type { FinalInvestigationReport, FindingItem, ExhibitItem } from '../types/investigation.types'
 import { Button } from '@/components/ui/Button'
@@ -94,7 +98,29 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
             <Download className="w-3.5 h-3.5" />
             <span>Export PDF</span>
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="text-xs flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-600" />
+            <span>Export DOCX</span>
+          </Button>
         </div>
+      </div>
+
+      {/* Review Mode Banner (FR 3.7.1 & FR 3.7.2) */}
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 flex items-center justify-between shadow-2xs mb-4">
+        <div className="flex items-center gap-2 text-amber-800">
+          <Lock className="w-4 h-4" />
+          <span className="text-xs font-semibold">Protected Review Mode Active</span>
+          <span className="text-[11px] opacity-80 hidden sm:inline">
+            Direct editing is prohibited. Reviewers must provide feedback via comments.
+          </span>
+        </div>
+        <Button size="sm" variant="outline" className="h-7 text-[10px] border-amber-300 text-amber-700 hover:bg-amber-100 bg-white cursor-pointer">
+          <MessageSquare className="w-3 h-3 mr-1" /> View All Comments
+        </Button>
       </div>
 
       {/* ========================================================================= */}
@@ -102,7 +128,12 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Executive Summary</h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Executive Summary</h3>
+            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
           <span className="font-mono text-xs text-slate-400 font-medium">Ref: {report.caseId}</span>
         </div>
 
@@ -167,8 +198,13 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* BACKGROUND & SCOPE                                                        */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Background &amp; Scope</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Background &amp; Scope</h3>
+            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-1">
@@ -221,8 +257,13 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* INVESTIGATION METHODOLOGY                                                 */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Investigation Methodology</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Investigation Methodology</h3>
+            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div>
@@ -387,14 +428,14 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* EXHIBITS & EVIDENCE INDEX                                                 */}
+      {/* ANNEXES & SUPPLEMENTARY MATERIALS (FR 3.7.4)                              */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Exhibits &amp; Evidence Index</h3>
+            <h3 className="text-sm font-bold text-slate-900">Annexes &amp; Supplementary Materials</h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Physical and digital documents referenced in factual findings
+              Attach supplementary materials, worksheets, and evidence to the case file
             </p>
           </div>
           {isEditable && (
@@ -405,7 +446,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
               className="text-xs flex items-center gap-1 border-slate-200 hover:bg-slate-50"
             >
               <Plus className="w-3.5 h-3.5 text-cbe-purple" />
-              <span>Add Exhibit</span>
+              <span>Attach Material</span>
             </Button>
           )}
         </div>
@@ -442,40 +483,59 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* SUPERVISORY SIGN-OFF & APPROVALS                                          */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Supervisory Sign-Off &amp; Approvals</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <h3 className="text-sm font-bold text-slate-900">Digital Signatures &amp; Approvals</h3>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <Lock className="w-3 h-3" /> cryptographically verified
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Investigator Sign-Off */}
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3 relative overflow-hidden">
+            <div className="absolute -right-4 -bottom-4 opacity-5">
+              <PenTool className="w-24 h-24" />
+            </div>
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-              Lead Investigator Formal Sign-Off
+              Lead Investigator Digital Signature
             </span>
-            <p className="font-semibold text-slate-900 text-xs">
-              {report.investigatorSignature}
-            </p>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500">
-              <span>Date Certified:</span>
+            <div className="flex flex-col">
+              <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
+                Signed by: {report.investigatorSignature}
+              </span>
+              <span className="text-[9px] text-slate-400 font-mono">
+                Hash: 0x8F9B...3A2C
+              </span>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+              <span>Timestamp:</span>
               <span className="font-medium text-slate-800">{report.signatureDate}</span>
             </div>
           </div>
 
           {/* Approving Authority */}
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3">
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3 relative overflow-hidden">
+            <div className="absolute -right-4 -bottom-4 opacity-5">
+              <PenTool className="w-24 h-24" />
+            </div>
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                Executive Review &amp; Approval
+                Executive Digital Signature
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
                 {report.approvalStatus}
               </span>
             </div>
-            <p className="font-semibold text-slate-900 text-xs">
-              {report.reviewedAndApprovedBy}
-            </p>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500">
-              <span>Approval Date:</span>
+            <div className="flex flex-col">
+              <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
+                Signed by: {report.reviewedAndApprovedBy}
+              </span>
+              <span className="text-[9px] text-slate-400 font-mono">
+                Hash: 0x1E4D...9F8A
+              </span>
+            </div>
+            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+              <span>Timestamp:</span>
               <span className="font-medium text-slate-800">{report.approvalDate}</span>
             </div>
           </div>

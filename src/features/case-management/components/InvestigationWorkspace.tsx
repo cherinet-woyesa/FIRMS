@@ -234,7 +234,7 @@ export const InvestigationWorkspace: React.FC = () => {
                         <p className="text-[11px] text-slate-500">
                           {triageState.isAcknowledged && triageState.acknowledgedAt
                             ? `Sent on ${new Date(triageState.acknowledgedAt).toLocaleString()}`
-                            : 'Send formal acknowledgment notice to whistleblower passkey portal.'}
+                            : ' '}
                         </p>
                       </div>
                     </div>
@@ -277,7 +277,7 @@ export const InvestigationWorkspace: React.FC = () => {
                         <p className="text-[11px] text-slate-500">
                           {triageState.legalHoldInitiated
                             ? `Active Notice Ref: ${triageState.legalHoldNoticeRef || 'LH-2026-092'}`
-                            : 'Issue immediate data preservation order on digital and financial records.'}
+                            : ' '}
                         </p>
                       </div>
                     </div>
@@ -326,7 +326,7 @@ export const InvestigationWorkspace: React.FC = () => {
                           {triageState.investigatorAssigned
                             ? `Assigned: ${triageState.investigatorAssigned} • ${triageState.noConflictSigned ? 'No Conflict Signed' : 'Pending Conflict Form'
                             }`
-                            : 'Designate independent investigator from Ethics & Corporate Values.'}
+                            : ''}
                         </p>
                       </div>
                     </div>
