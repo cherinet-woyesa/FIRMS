@@ -15,6 +15,8 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   CASES: '/dashboard/cases',
   CASE_DETAIL: (id: string) => `/dashboard/cases/${id}`,
+  USERS: '/dashboard/users',
+  ACCESS_MANAGEMENT: '/dashboard/access',
   AUDIT_LOGS: '/dashboard/audit',
   SETTINGS: '/dashboard/settings',
 } as const

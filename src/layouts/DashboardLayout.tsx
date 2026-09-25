@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, LayoutDashboard, Inbox, History, Settings, LogOut } from 'lucide-react'
+import { Shield, LayoutDashboard, Inbox, History, Settings, LogOut, Users, Lock } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
 import { useAuthStore } from '@/store/useAuthStore'
 
@@ -17,6 +17,8 @@ export const DashboardLayout: React.FC = () => {
   const navLinks = [
     { label: 'Overview', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
     { label: 'Case Registry', to: ROUTES.CASES, icon: Inbox },
+    { label: 'User Management', to: ROUTES.USERS, icon: Users },
+    { label: 'Access Management', to: ROUTES.ACCESS_MANAGEMENT, icon: Lock },
     { label: 'Audit Logs', to: ROUTES.AUDIT_LOGS, icon: History },
     { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
   ]

@@ -10,6 +10,10 @@ import { ReportWizard } from '@/features/report-submission'
 import { CaseTracker } from '@/features/case-tracking'
 import { LoginForm, ProtectedRoute } from '@/features/auth'
 import { CaseManagementPage } from '@/features/case-management'
+import UserManagementPage from '@/features/user-management/pages/UserManagementPage'
+import { AccessManagementPage } from '@/features/accessManagement/pages/AccessManagementPage'
+import { RolesPage } from '@/features/accessManagement/pages/RolesPage'
+import { PermissionsPage } from '@/features/accessManagement/pages/PermissionsPage'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -31,6 +35,12 @@ export const AppRoutes: React.FC = () => {
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<CaseManagementPage />} />
           <Route path={ROUTES.CASES} element={<CaseManagementPage />} />
+          <Route path={ROUTES.USERS} element={<UserManagementPage />} />
+          <Route path={ROUTES.ACCESS_MANAGEMENT} element={<AccessManagementPage />}>
+            <Route index element={<Navigate to="roles" replace />} />
+            <Route path="roles" element={<RolesPage />} />
+            <Route path="permissions" element={<PermissionsPage />} />
+          </Route>
           <Route
             path={ROUTES.AUDIT_LOGS}
             element={
