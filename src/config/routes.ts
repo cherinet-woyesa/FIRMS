@@ -16,6 +16,8 @@ export const ROUTES = {
   CASES: '/dashboard/cases',
   CASE_DETAIL: (id: string) => `/dashboard/cases/${id}`,
   REPORT_REPOSITORY: '/dashboard/repository',
+  USERS: '/dashboard/users',
+  ACCESS_MANAGEMENT: '/dashboard/access',
   AUDIT_LOGS: '/dashboard/audit',
   SETTINGS: '/dashboard/settings',
   TEAM_CREATION: '/dashboard/teams',
