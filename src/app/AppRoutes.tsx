@@ -10,6 +10,7 @@ import { ReportWizard } from '@/features/report-submission'
 import { CaseTracker } from '@/features/case-tracking'
 import { LoginForm, ProtectedRoute } from '@/features/auth'
 import { CaseManagementPage } from '@/features/case-management'
+import { TeamCreationPage } from '@/features/team-management'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -31,6 +32,12 @@ export const AppRoutes: React.FC = () => {
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<CaseManagementPage />} />
           <Route path={ROUTES.CASES} element={<CaseManagementPage />} />
+
+          <Route
+  path={ROUTES.TEAM_CREATION}
+  element={<TeamCreationPage />}
+/>
+
           <Route
             path={ROUTES.AUDIT_LOGS}
             element={
