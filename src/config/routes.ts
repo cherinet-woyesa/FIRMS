@@ -19,4 +19,5 @@ export const ROUTES = {
   ACCESS_MANAGEMENT: '/dashboard/access',
   AUDIT_LOGS: '/dashboard/audit',
   SETTINGS: '/dashboard/settings',
+  WORKFLOWS: '/dashboard/workflows',
 } as const

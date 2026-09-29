@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, LayoutDashboard, Inbox, History, Settings, LogOut, Users, Lock } from 'lucide-react'
+import { Shield, LayoutDashboard, Inbox, History, Settings, LogOut, Users, Lock, Workflow } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
 import { useAuthStore } from '@/store/useAuthStore'
 
@@ -20,6 +20,7 @@ export const DashboardLayout: React.FC = () => {
     { label: 'User Management', to: ROUTES.USERS, icon: Users },
     { label: 'Access Management', to: ROUTES.ACCESS_MANAGEMENT, icon: Lock },
     { label: 'Audit Logs', to: ROUTES.AUDIT_LOGS, icon: History },
+    { label: 'Workflow Management', to: ROUTES.WORKFLOWS, icon: Workflow },
     { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
   ]
 
@@ -84,7 +85,7 @@ export const DashboardLayout: React.FC = () => {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8">
+        <main className={`flex-1 overflow-y-auto ${location.pathname.startsWith(ROUTES.WORKFLOWS) ? '' : 'p-8'}`}>
           <Outlet />
         </main>
       </div>
