@@ -12,6 +12,7 @@ import {
   Lock,
   X,
   PlusCircle,
+  Workflow,
 } from 'lucide-react'
 import { ROUTES } from '@/config/routes'
 import { useSelector, useDispatch } from 'react-redux'
@@ -61,8 +62,9 @@ export const DashboardSidebar: React.FC<Props> = ({ mobileOpen = false, onCloseM
     { label: 'Teams', to: ROUTES.TEAM_CREATION, icon: Users, show: canManageTeams },
     { label: 'User Management', to: ROUTES.USERS, icon: Users, show: isAdmin },
     { label: 'Access Management', to: ROUTES.ACCESS_MANAGEMENT, icon: Lock, show: isAdmin },
-    { label: 'Reports', to: ROUTES.REPORT_REPOSITORY, icon: FolderSearch, show: canViewReports },
+    { label: 'Report Repository', to: ROUTES.REPORT_REPOSITORY, icon: FolderSearch, show: canViewReports },
     { label: 'Audit Logs', to: ROUTES.AUDIT_LOGS, icon: History, show: isAdmin },
+    { label: 'Workflow Management', to: ROUTES.WORKFLOWS, icon: Workflow, show: isAdmin },
     { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings, show: isAdmin },
   ]
 

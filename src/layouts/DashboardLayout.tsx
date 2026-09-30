@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { DashboardSidebar, DashboardHeader, DashboardFooter } from './components'
+import { ROUTES } from '@/config/routes'
 
 export const DashboardLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -29,14 +30,12 @@ export const DashboardLayout: React.FC = () => {
         </div>
 
         {/* Dynamic Page Body - Dedicated scroll container */}
-        <main id="main-content-scroll" className="flex-1 overflow-y-auto print:overflow-visible p-4 sm:p-6 lg:p-8 print:p-0 bg-white">
+        <main id="main-content-scroll" className={`flex-1 overflow-y-auto ${location.pathname.startsWith(ROUTES.WORKFLOWS) ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
           <Outlet />
         </main>
 
         {/* Modular Footer */}
-        <div className="print:hidden">
-          <DashboardFooter />
-        </div>
+        <DashboardFooter />
       </div>
     </div>
   )

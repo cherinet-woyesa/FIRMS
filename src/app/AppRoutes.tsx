@@ -16,6 +16,7 @@ import UserManagementPage from '@/features/user-management/pages/UserManagementP
 import { AccessManagementPage } from '@/features/accessManagement/pages/AccessManagementPage'
 import { RolesPage } from '@/features/accessManagement/pages/RolesPage'
 import { PermissionsPage } from '@/features/accessManagement/pages/PermissionsPage'
+import WorkflowPortalPage from '@/features/workflow-management/pages/WorkflowPortalPage'
 
 export const AppRoutes: React.FC = () => {
   return (
@@ -36,6 +37,7 @@ export const AppRoutes: React.FC = () => {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path={ROUTES.DASHBOARD} element={<CaseManagementPage />} />
+          <Route path={ROUTES.MANUAL_INTAKE} element={<ReportWizard />} />
           <Route path={ROUTES.CASES} element={<CaseManagementPage />} />
           <Route path="/dashboard/cases/:id" element={<InvestigationWorkspace />} />
           <Route path={ROUTES.TEAM_CREATION} element={<TeamCreationPage />} />
@@ -46,6 +48,7 @@ export const AppRoutes: React.FC = () => {
             <Route path="roles" element={<RolesPage />} />
             <Route path="permissions" element={<PermissionsPage />} />
           </Route>
+          <Route path={ROUTES.WORKFLOWS} element={<WorkflowPortalPage />} />
           <Route
             path={ROUTES.AUDIT_LOGS}
             element={

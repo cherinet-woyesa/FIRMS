@@ -13,6 +13,7 @@ export const ROUTES = {
 
   // Compliance Officer Dashboard
   DASHBOARD: '/dashboard',
+  MANUAL_INTAKE: '/dashboard/intake',
   CASES: '/dashboard/cases',
   CASE_DETAIL: (id: string) => `/dashboard/cases/${id}`,
   REPORT_REPOSITORY: '/dashboard/repository',
@@ -20,5 +21,6 @@ export const ROUTES = {
   ACCESS_MANAGEMENT: '/dashboard/access',
   AUDIT_LOGS: '/dashboard/audit',
   SETTINGS: '/dashboard/settings',
+  WORKFLOWS: '/dashboard/workflows',
   TEAM_CREATION: '/dashboard/teams',
 } as const
