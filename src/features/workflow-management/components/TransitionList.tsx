@@ -1,14 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useWorkflowTransitions } from '../api';
+import { WorkflowStage } from '../types';
 import { ArrowRight, Loader2, Plus, X, GitMerge } from 'lucide-react';
+import { MapActionModal } from './MapActionModal';
 
 interface TransitionListProps {
-    stageId: string;
+    stage: WorkflowStage;
     isVersionLocked: boolean;
+    allStages: WorkflowStage[];
 }
 
-export const TransitionList: React.FC<TransitionListProps> = ({ stageId, isVersionLocked }) => {
-    const { data: transitions, isLoading, isError } = useWorkflowTransitions(stageId);
+export const TransitionList: React.FC<TransitionListProps> = ({ stage, isVersionLocked, allStages }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { data: transitions, isLoading, isError } = useWorkflowTransitions(stage.id);
 
     if (isLoading) {
         return <div className="flex justify-center p-4"><Loader2 className="w-5 h-5 animate-spin text-[#95298E]" /></div>;
@@ -26,7 +30,10 @@ export const TransitionList: React.FC<TransitionListProps> = ({ stageId, isVersi
                 </h4>
                 
                 {!isVersionLocked && (
-                    <button className="flex items-center px-2 py-1 text-[10px] font-bold text-[#95298E] transition-colors bg-[#fbf6fd] rounded hover:bg-purple-100 border border-transparent hover:border-purple-200">
+                    <button 
+                        onClick={() => setIsModalOpen(true)}
+                        className="flex items-center px-2 py-1 text-[10px] font-bold text-[#95298E] transition-colors bg-[#fbf6fd] rounded hover:bg-purple-100 border border-transparent hover:border-purple-200"
+                    >
                         <Plus className="w-3 h-3 mr-1" /> Add Rule
                     </button>
                 )}
@@ -40,6 +47,7 @@ export const TransitionList: React.FC<TransitionListProps> = ({ stageId, isVersi
                 <div className="flex flex-wrap gap-2">
                     {transitions.map((t) => {
                         const badgeBaseClasses = "group relative inline-flex flex-col justify-center px-2.5 py-1.5 rounded-md text-[11px] shadow-sm transition-all duration-200 overflow-hidden border bg-purple-50 text-[#95298E] border-purple-200 pr-7";
+                        const targetStageName = allStages.find(s => s.id === t.toStageId)?.name || t.toStageId.substring(0, 8);
                         
                         return (
                             <span key={t.id} className={badgeBaseClasses}>
@@ -47,11 +55,12 @@ export const TransitionList: React.FC<TransitionListProps> = ({ stageId, isVersi
                                     <ArrowRight className="w-3.5 h-3.5 mr-1.5 shrink-0" />
                                     {t.actionName}
                                 </span>
-                                <span className="text-[9px] text-gray-500 mt-0.5 ml-5">To: {t.toStageName || t.toStageId.substring(0, 8)}</span>
+                                <span className="text-[9px] text-gray-500 mt-0.5 ml-5">To: {targetStageName}</span>
                                 
                                 <div className="flex flex-wrap gap-1 mt-1.5 ml-5">
                                     {t.requiresAssignment && <span className="px-1 py-0.5 bg-white rounded-[4px] border border-gray-200 text-[8px] text-gray-600 font-medium">Req. Assignment</span>}
                                     {t.requiresComment && <span className="px-1 py-0.5 bg-white rounded-[4px] border border-gray-200 text-[8px] text-gray-600 font-medium">Req. Comment</span>}
+                                    {t.requiresApproval && <span className="px-1 py-0.5 bg-white rounded-[4px] border border-gray-200 text-[8px] text-gray-600 font-medium">Req. Approval</span>}
                                 </div>
 
                                 {!isVersionLocked && (
@@ -67,6 +76,14 @@ export const TransitionList: React.FC<TransitionListProps> = ({ stageId, isVersi
                     })}
                 </div>
             )}
+
+            <MapActionModal 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                fromStage={stage}
+                allStages={allStages}
+                versionId={stage.workflowVersionId}
+            />
         </div>
     );
 };

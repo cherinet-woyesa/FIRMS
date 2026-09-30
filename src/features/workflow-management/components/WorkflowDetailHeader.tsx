@@ -8,6 +8,10 @@ interface WorkflowDetailHeaderProps {
     selectedVersionId: string | null;
     onSelectVersion: (id: string) => void;
     isLoadingVersions: boolean;
+    onCreateDraft: () => void;
+    isCreatingDraft: boolean;
+    onToggleActiveVersion?: () => void;
+    isUpdatingVersion?: boolean;
 }
 
 export const WorkflowDetailHeader: React.FC<WorkflowDetailHeaderProps> = ({
@@ -15,8 +19,14 @@ export const WorkflowDetailHeader: React.FC<WorkflowDetailHeaderProps> = ({
     versions,
     selectedVersionId,
     onSelectVersion,
-    isLoadingVersions
+    isLoadingVersions,
+    onCreateDraft,
+    isCreatingDraft,
+    onToggleActiveVersion,
+    isUpdatingVersion
 }) => {
+    const selectedVersion = versions?.find(v => v.id === selectedVersionId);
+
     return (
         <div className="bg-white border-b border-gray-200 p-6 shadow-sm flex-shrink-0">
             <div className="flex justify-between items-start">
@@ -56,8 +66,40 @@ export const WorkflowDetailHeader: React.FC<WorkflowDetailHeaderProps> = ({
                     </div>
                     
                     {/* Action Buttons */}
-                    <button className="flex items-center space-x-1 border border-gray-300 hover:border-[#95298E] hover:text-[#95298E] bg-white text-gray-700 text-sm font-medium py-1.5 px-3 rounded-md transition-colors shadow-sm">
-                        <span>Create Draft</span>
+                    {selectedVersion && (
+                        <button 
+                            onClick={onToggleActiveVersion}
+                            disabled={isUpdatingVersion}
+                            className={`flex items-center space-x-1 border text-sm font-medium py-1.5 px-3 rounded-md transition-colors shadow-sm disabled:opacity-50
+                                ${selectedVersion.isActive 
+                                    ? 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50' 
+                                    : 'border-transparent text-white bg-emerald-600 hover:bg-emerald-700'
+                                }`}
+                        >
+                            {isUpdatingVersion ? (
+                                <span className="flex items-center">
+                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Updating...
+                                </span>
+                            ) : (
+                                <span>{selectedVersion.isActive ? 'Deactivate' : 'Publish Version'}</span>
+                            )}
+                        </button>
+                    )}
+
+                    <button 
+                        onClick={onCreateDraft}
+                        disabled={isCreatingDraft}
+                        className="flex items-center space-x-1 border border-gray-300 hover:border-[#95298E] hover:text-[#95298E] bg-white text-gray-700 text-sm font-medium py-1.5 px-3 rounded-md transition-colors shadow-sm disabled:opacity-50"
+                    >
+                        {isCreatingDraft ? (
+                            <span className="flex items-center">
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                Creating...
+                            </span>
+                        ) : (
+                            <span>Create Draft</span>
+                        )}
                     </button>
                     
                     <button className="p-1.5 text-gray-400 hover:text-gray-600 border border-transparent hover:border-gray-200 rounded-md transition-colors">

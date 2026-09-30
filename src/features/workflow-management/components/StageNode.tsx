@@ -7,20 +7,28 @@ interface StageNodeProps {
     stage: WorkflowStage;
     isVersionLocked: boolean;
     index: number;
+    allStages: WorkflowStage[];
+    onClick?: () => void;
 }
 
-export const StageNode: React.FC<StageNodeProps> = ({ stage, isVersionLocked, index }) => {
+export const StageNode: React.FC<StageNodeProps> = ({ stage, isVersionLocked, index, allStages, onClick }) => {
     return (
         <div className="relative flex items-start gap-6 group transition-all duration-300">
             {/* Timeline Node */}
-            <div className="flex flex-col items-center z-10 shrink-0 mt-1.5">
+            <div 
+                className={`flex flex-col items-center z-10 shrink-0 mt-1.5 ${onClick && !isVersionLocked ? 'cursor-pointer' : ''}`}
+                onClick={() => onClick && !isVersionLocked ? onClick() : undefined}
+            >
                 <div className="w-[58px] h-[58px] rounded-2xl bg-white border border-gray-200 shadow-sm flex items-center justify-center text-lg font-black text-[#95298E] group-hover:border-[#95298E] group-hover:shadow-md transition-all">
                     {stage.displayOrder || index + 1}
                 </div>
             </div>
 
             {/* Stage Content Card */}
-            <div className="flex-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm group-hover:shadow-md transition-shadow">
+            <div 
+                className={`flex-1 bg-white border border-gray-200 rounded-2xl p-6 shadow-sm group-hover:shadow-md transition-shadow ${onClick && !isVersionLocked ? 'cursor-pointer hover:border-[#95298E]/50' : ''}`}
+                onClick={() => onClick && !isVersionLocked ? onClick() : undefined}
+            >
                 <div className="flex justify-between items-start mb-4">
                     <div>
                         <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
@@ -75,7 +83,7 @@ export const StageNode: React.FC<StageNodeProps> = ({ stage, isVersionLocked, in
 
                     {/* Right Column: Routing Matrix */}
                     <div>
-                        <TransitionList stageId={stage.id} isVersionLocked={isVersionLocked} />
+                        <TransitionList stage={stage} isVersionLocked={isVersionLocked} allStages={allStages} />
                     </div>
                 </div>
             </div>

@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { WorkflowVersion } from '../types';
 import { useWorkflowStages } from '../api';
 import { StageNode } from './StageNode';
 import { Lock, AlertCircle, Plus } from 'lucide-react';
+import { InsertStageSlideOver } from './InsertStageSlideOver';
 
 interface StageListProps {
     version: WorkflowVersion;
 }
 
 export const StageList: React.FC<StageListProps> = ({ version }) => {
+    const [isInsertOpen, setIsInsertOpen] = useState(false);
     const { data: stages, isLoading, isError } = useWorkflowStages(version.id);
 
     if (isLoading) {
@@ -43,6 +45,7 @@ export const StageList: React.FC<StageListProps> = ({ version }) => {
                     </p>
                 </div>
                 <button
+                    onClick={() => setIsInsertOpen(true)}
                     disabled={version.isActive}
                     className={`px-4 py-2.5 text-[13px] font-bold rounded-lg transition-colors shadow-sm flex items-center
                         ${version.isActive 
@@ -79,7 +82,10 @@ export const StageList: React.FC<StageListProps> = ({ version }) => {
                         <div className="ml-20 p-8 text-center bg-white border border-gray-200 border-dashed rounded-2xl">
                             <div className="text-gray-400 mb-2 font-medium">No stages defined for this version.</div>
                             {!version.isActive && (
-                                <button className="text-[#95298E] hover:underline text-sm font-bold mt-2">
+                                <button 
+                                    onClick={() => setIsInsertOpen(true)}
+                                    className="text-[#95298E] hover:underline text-sm font-bold mt-2"
+                                >
                                     Insert your first stage
                                 </button>
                             )}
@@ -91,11 +97,19 @@ export const StageList: React.FC<StageListProps> = ({ version }) => {
                                 stage={stage} 
                                 isVersionLocked={version.isActive}
                                 index={index}
+                                allStages={sortedStages}
                             />
                         ))
                     )}
                 </div>
             </div>
+
+            <InsertStageSlideOver 
+                isOpen={isInsertOpen}
+                onClose={() => setIsInsertOpen(false)}
+                versionId={version.id}
+                nextDisplayOrder={sortedStages.length + 1}
+            />
         </div>
     );
 };
