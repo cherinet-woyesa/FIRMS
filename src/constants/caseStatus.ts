@@ -9,6 +9,11 @@ export const CASE_STATUSES = {
     label: 'Under Review',
     color: 'bg-amber-50 text-amber-700 border-amber-200',
   },
+  INITIATED: {
+    id: 'INITIATED',
+    label: 'Initiated',
+    color: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  },
   INVESTIGATION_ACTIVE: {
     id: 'INVESTIGATION_ACTIVE',
     label: 'Investigation Active',

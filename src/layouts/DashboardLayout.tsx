@@ -12,25 +12,31 @@ export const DashboardLayout: React.FC = () => {
   }, [location.pathname])
 
   return (
-    <div className="h-screen flex bg-slate-50 text-slate-900 font-sans overflow-hidden">
+    <div className="h-screen print:h-auto flex bg-white text-slate-900 font-sans overflow-hidden print:overflow-visible">
       {/* 1. Modular Responsive Sidebar (desktop pinned, mobile slide-over) */}
-      <DashboardSidebar
-        mobileOpen={mobileMenuOpen}
-        onCloseMobile={() => setMobileMenuOpen(false)}
-      />
+      <div className="print:hidden">
+        <DashboardSidebar
+          mobileOpen={mobileMenuOpen}
+          onCloseMobile={() => setMobileMenuOpen(false)}
+        />
+      </div>
 
       {/* 2. Main Content Pane - Contains responsive header, independent scrollable page body, and footer */}
-      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-screen print:h-auto overflow-hidden print:overflow-visible">
         {/* Modular Header with Mobile Menu Trigger */}
-        <DashboardHeader onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)} />
+        <div className="print:hidden">
+          <DashboardHeader onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)} />
+        </div>
 
         {/* Dynamic Page Body - Dedicated scroll container */}
-        <main id="main-content-scroll" className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main id="main-content-scroll" className="flex-1 overflow-y-auto print:overflow-visible p-4 sm:p-6 lg:p-8 print:p-0 bg-white">
           <Outlet />
         </main>
 
         {/* Modular Footer */}
-        <DashboardFooter />
+        <div className="print:hidden">
+          <DashboardFooter />
+        </div>
       </div>
     </div>
   )

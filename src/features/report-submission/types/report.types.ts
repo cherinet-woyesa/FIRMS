@@ -2,8 +2,8 @@ import { z } from 'zod'
 
 // Section 1: Reporter Information
 export const step1Schema = z.object({
-  reportingMode: z.enum(['anonymous', 'confidential'], {
-    message: 'Please indicate if you wish to remain anonymous or confidential',
+  reportingMode: z.enum(['anonymous', 'confidential', 'standard'], {
+    message: 'Please indicate the reporting mode',
   }),
   fullName: z.string().optional(),
   phoneNumber: z.string().optional(),
@@ -55,8 +55,8 @@ export const step5Schema = z.object({
 // Combined Schema
 export const corruptionReportSchema = z.object({
   // Section 1
-  reportingMode: z.enum(['anonymous', 'confidential'], {
-    message: 'Please indicate if you wish to remain anonymous or confidential',
+  reportingMode: z.enum(['anonymous', 'confidential', 'standard'], {
+    message: 'Please indicate the reporting mode',
   }),
   fullName: z.string().optional(),
   phoneNumber: z.string().optional(),
@@ -112,7 +112,7 @@ export interface ReportSubmissionResult {
   submittedAt: string
   category: string
   trackingUrl: string
-  reportingMode: 'anonymous' | 'confidential'
+  reportingMode: 'anonymous' | 'confidential' | 'standard'
   divisionDepartmentBranch?: string
   reportRecipient?: string
 }

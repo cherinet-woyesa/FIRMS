@@ -1,8 +1,11 @@
 import type { CorruptionReportInput, ReportSubmissionResult } from '../types/report.types'
-import { addSubmittedCaseToStorage } from '../../case-management/api/getCases'
-import type { CaseDetailedInvestigation } from '../../case-management/api/getCases'
-import type { PreliminaryAssessmentReport, TriageWorkflowState } from '../../case-management/types/triage.types'
+import { apiClient } from '../../../lib/apiClient'
 
+const parseDateOrNull = (dateStr?: string) => {
+  if (!dateStr || dateStr.trim() === '' || dateStr.toLowerCase() === 'unknown') return null
+  const parsed = new Date(dateStr)
+  return isNaN(parsed.getTime()) ? null : parsed.toISOString()
+}
 
 /**
  * Submit encrypted corruption report to the ethics & compliance oversight system
@@ -10,79 +13,52 @@ import type { PreliminaryAssessmentReport, TriageWorkflowState } from '../../cas
 export async function submitWhistleblowerReport(
   payload: CorruptionReportInput
 ): Promise<ReportSubmissionResult> {
-  // Simulate cryptographic encryption delay and network submission
-  await new Promise((resolve) => setTimeout(resolve, 1000))
-
-  const randomRef = `CBE-ETH-${Math.floor(100000 + Math.random() * 900000)}`
-  const newId = `case-${Date.now()}`
-
-  // 1. Build the detailed case from payload
-  const newDetailedCase: CaseDetailedInvestigation = {
-    id: newId,
-    referenceKey: randomRef,
-    category: payload.corruptionType || payload.category || 'Bribery, Kickbacks & Corruption',
-    targetDepartment: payload.targetDepartment || payload.divisionDepartmentBranch || 'Unknown',
-    priority: 'HIGH', // default priority for new submissions
-    status: 'UNDER_REVIEW', // initial status
-    submittedAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+  const createCaseDto = {
     isAnonymous: payload.isAnonymous || payload.reportingMode === 'anonymous',
-    reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
-    relationship: payload.relationship || 'Whistleblower',
+    isWhistleblowing: true,
+    reporterType: payload.relationship || 'Whistleblower',
     fullName: payload.fullName,
-    contactEmail: payload.contactEmail || payload.email,
+    email: payload.contactEmail || payload.email,
     phoneNumber: payload.phoneNumber,
     physicalAddress: payload.physicalAddress,
-    summary: payload.summary || payload.description || 'No summary provided',
-    detailedNarrative: payload.detailedNarrative || 'No detailed narrative',
-    incidentDate: payload.incidentDate || 'Unknown',
-    incidentLocation: payload.incidentLocation || 'Unknown',
-    howAware: payload.howAware || 'Unknown',
-    whyCorrupt: payload.whyCorrupt || 'Unknown',
-    divisionDepartmentBranch: payload.divisionDepartmentBranch || 'Unknown',
-    departmentOffice: payload.departmentOffice,
-    organizationAddress: payload.organizationAddress,
-    corruptedPersonNames: payload.corruptedPersonNames || 'Unknown',
-    jobPositions: payload.jobPositions || 'Unknown',
-    otherIdentifyingInfo: payload.otherIdentifyingInfo,
-    evidenceInPossession: payload.evidenceInPossession || 'None',
-    evidenceNotInPossession: payload.evidenceNotInPossession,
-    witnesses: payload.witnesses,
-    attachedFiles: payload.attachedFiles,
-    priorReports: payload.priorReports || 'None',
-    resolutionSought: payload.resolutionSought || 'Investigation',
-    reportRecipient: payload.reportRecipient || 'Risk Management & Compliance Division',
-    
-    // Default empty triage that the officer will fill out
-    triageWorkflow: {
-      isAcknowledged: false,
-      legalHoldInitiated: false,
-      orgChartReviewed: false,
-      osintReviewed: false,
-      internalRecordsReviewed: false,
-    } as TriageWorkflowState,
-    preliminaryAssessmentReport: {
-      caseId: randomRef,
-      dateReportReceipt: new Date().toISOString().split('T')[0],
-      sourceReportingChannel: 'FIRMS Whistleblower Portal',
-      allegedSubjects: payload.corruptedPersonNames || 'Unknown',
-      allegedOrganizationUnit: payload.divisionDepartmentBranch || 'Unknown',
-      typeOfMisconduct: payload.corruptionType || 'Unknown',
-      allegedPeriodOfIncident: payload.incidentDate || 'Unknown',
-      allegationSummary: payload.summary || 'Unknown',
-    } as PreliminaryAssessmentReport,
+    targetDepartment: payload.targetDepartment || payload.divisionDepartmentBranch,
+    fraudType: payload.corruptionType || payload.category,
+    summary: payload.summary || payload.description,
+    detailedDescription: payload.detailedNarrative,
+    incidentStartDate: parseDateOrNull(payload.incidentDate),
+    incidentEndDate: parseDateOrNull(payload.incidentDate),
+    incidentLocation: payload.incidentLocation,
+    howBecameAware: payload.howAware,
+    whyBelievedCorrupt: payload.whyCorrupt,
   }
 
-  // 2. Persist to storage
-  addSubmittedCaseToStorage(newDetailedCase)
-
-  return {
-    caseReferenceKey: randomRef,
-    submittedAt: new Date().toISOString(),
-    category: payload.corruptionType || payload.category || 'Bribery, Kickbacks & Corruption',
-    trackingUrl: `/track?case=${randomRef}`,
-    reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
-    divisionDepartmentBranch: payload.divisionDepartmentBranch || payload.targetDepartment,
-    reportRecipient: payload.reportRecipient || 'Risk Management & Compliance Division',
+  try {
+    const response = await apiClient.post('/api/Cases', createCaseDto)
+    if (response.data.success) {
+      const savedCase = response.data.data
+      return {
+        caseReferenceKey: savedCase.referenceKey,
+        submittedAt: savedCase.submittedAt,
+        category: savedCase.category,
+        trackingUrl: `/track?case=${savedCase.referenceKey}`,
+        reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
+        divisionDepartmentBranch: payload.divisionDepartmentBranch || payload.targetDepartment,
+        reportRecipient: payload.reportRecipient || 'Risk Management & Compliance Division',
+      }
+    } else {
+      throw new Error(response.data.message || 'Failed to submit case')
+    }
+  } catch (error) {
+    console.error('Error submitting case to backend:', error)
+    // Fallback response if something fails
+    return {
+      caseReferenceKey: `CBE-ETH-FAIL`,
+      submittedAt: new Date().toISOString(),
+      category: payload.corruptionType || 'Unknown',
+      trackingUrl: `/track?case=FAIL`,
+      reportingMode: payload.reportingMode || (payload.isAnonymous ? 'anonymous' : 'confidential'),
+      divisionDepartmentBranch: payload.divisionDepartmentBranch || payload.targetDepartment,
+      reportRecipient: payload.reportRecipient || 'Risk Management & Compliance Division',
+    }
   }
 }

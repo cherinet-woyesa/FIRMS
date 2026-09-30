@@ -1,4 +1,8 @@
 import React, { useState } from 'react'
+import { useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+import { RootState } from '@/store/store'
+import { ROUTES } from '@/config/routes'
 import {
   FileText,
   Shield,
@@ -24,12 +28,14 @@ import type {
 } from '../types/investigation.types'
 import { FinalInvestigationReportView } from './FinalInvestigationReportView'
 import { Button } from '@/components/ui/Button'
+import { RichTextEditor } from '@/components/ui/RichTextEditor'
 
 interface Props {
   investigation: FullInvestigationState
   onUpdateInvestigation: (updated: FullInvestigationState) => void
   onSave: () => void
   isSaving?: boolean
+  isEditable?: boolean
 }
 
 const STEPS = [
@@ -44,7 +50,14 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
   investigation,
   onUpdateInvestigation,
   onSave,
+  isEditable = true,
 }) => {
+  const navigate = useNavigate()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const isSarcSecretary = user?.roles?.includes('SARC Secretary') || false
+  const userRoles = user?.roles || []
+  const isVpIa = userRoles.some(r => r.includes('VP') || r.includes('VP-IA') || r.includes('VP–IA'))
+
   const [activeStep, setActiveStep] = useState<number>(investigation.currentStep || 1)
   const [step1Tab, setStep1Tab] = useState<'authorization' | 'scope'>('authorization')
   const [step2Tab, setStep2Tab] = useState<'seized' | 'forensics' | 'inquiries'>('seized')
@@ -198,11 +211,10 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
             <button
               key={s.id}
               onClick={() => setActiveStep(s.id)}
-              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition cursor-pointer whitespace-nowrap text-center ${
-                isActive
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-              }`}
+              className={`flex-1 py-2 px-3 rounded-md text-xs font-semibold transition cursor-pointer whitespace-nowrap text-center ${isActive
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
             >
               {s.label}
             </button>
@@ -212,28 +224,26 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
 
       {/* Step 1: Formal Planning and Authorization */}
       {activeStep === 1 && (
-        <div className="space-y-4">
+        <div className={`space-y-4 ${isSarcSecretary ? 'pointer-events-none opacity-80' : ''}`}>
           {/* Sub-nav pills */}
           <div className="flex border-b border-slate-200 gap-1 bg-slate-100/80 p-1 rounded-lg">
             <button
               type="button"
               onClick={() => setStep1Tab('authorization')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step1Tab === 'authorization'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step1Tab === 'authorization'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               1. Formal Authorization &amp; Mandate
             </button>
             <button
               type="button"
               onClick={() => setStep1Tab('scope')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step1Tab === 'scope'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step1Tab === 'scope'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               2. Scope, Targets &amp; Resources
             </button>
@@ -249,11 +259,10 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                   </h3>
                 </div>
                 <span
-                  className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${
-                    investigation.planning.isAuthorized
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-amber-100 text-amber-700'
-                  }`}
+                  className={`px-2.5 py-0.5 rounded text-[10px] font-bold ${investigation.planning.isAuthorized
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-100 text-amber-700'
+                    }`}
                 >
                   {investigation.planning.isAuthorized ? 'Authorized to Investigate' : 'Pending Authorization'}
                 </span>
@@ -313,11 +322,10 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                     return (
                       <label
                         key={scope}
-                        className={`p-2.5 rounded-lg border text-xs font-medium cursor-pointer flex items-center gap-2 transition ${
-                          isChecked
-                            ? 'bg-purple-50/70 border-cbe-purple text-purple-950 font-semibold'
-                            : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
-                        }`}
+                        className={`p-2.5 rounded-lg border text-xs font-medium cursor-pointer flex items-center gap-2 transition ${isChecked
+                          ? 'bg-purple-50/70 border-cbe-purple text-purple-950 font-semibold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                          }`}
                       >
                         <input
                           type="checkbox"
@@ -378,32 +386,31 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Specific Allegation Being Investigated</label>
-                  <textarea
-                    rows={2}
-                    value={investigation.planning.specificAllegations}
-                    onChange={(e) =>
+                  <RichTextEditor
+                    content={investigation.planning.specificAllegations}
+                    onChange={(val) =>
                       updateState((prev) => ({
                         ...prev,
-                        planning: { ...prev.planning, specificAllegations: e.target.value },
+                        planning: { ...prev.planning, specificAllegations: val },
                       }))
                     }
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    placeholder="Provide full details of the specific allegations..."
+                    minHeight="100px"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Required Resources &amp; Support</label>
-                  <textarea
-                    rows={2}
-                    value={investigation.planning.requiredResources}
-                    onChange={(e) =>
+                  <RichTextEditor
+                    content={investigation.planning.requiredResources}
+                    onChange={(val) =>
                       updateState((prev) => ({
                         ...prev,
-                        planning: { ...prev.planning, requiredResources: e.target.value },
+                        planning: { ...prev.planning, requiredResources: val },
                       }))
                     }
                     placeholder="e.g. Forensic auditors, legal counsel, IT security log analysis..."
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    minHeight="100px"
                   />
                 </div>
               </div>
@@ -432,33 +439,30 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setStep2Tab('seized')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step2Tab === 'seized'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step2Tab === 'seized'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               1. Seized Records ({investigation.evidence.seizedRecords.length})
             </button>
             <button
               type="button"
               onClick={() => setStep2Tab('forensics')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step2Tab === 'forensics'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step2Tab === 'forensics'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               2. Forensic Audit &amp; Loss
             </button>
             <button
               type="button"
               onClick={() => setStep2Tab('inquiries')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step2Tab === 'inquiries'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step2Tab === 'inquiries'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               3. External Inquiries ({investigation.evidence.covertExternalInquiries.length})
             </button>
@@ -603,16 +607,16 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
 
               <div className="space-y-1 pt-1">
                 <label className="text-[11px] font-semibold text-slate-500">Patterns of Illicit Payments &amp; Findings</label>
-                <textarea
-                  rows={2}
-                  value={investigation.evidence.illicitPatternsIdentified}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={investigation.evidence.illicitPatternsIdentified}
+                  onChange={(val) =>
                     updateState((prev) => ({
                       ...prev,
-                      evidence: { ...prev.evidence, illicitPatternsIdentified: e.target.value },
+                      evidence: { ...prev.evidence, illicitPatternsIdentified: val },
                     }))
                   }
-                  className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                  placeholder="Document identified patterns of illicit behavior..."
+                  minHeight="100px"
                 />
               </div>
             </div>
@@ -723,33 +727,30 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
             <button
               type="button"
               onClick={() => setStep3Tab('neutral')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step3Tab === 'neutral'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step3Tab === 'neutral'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               1. Neutral Witnesses ({investigation.interviews.neutralWitnesses.length})
             </button>
             <button
               type="button"
               onClick={() => setStep3Tab('key')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step3Tab === 'key'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step3Tab === 'key'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               2. Key Witnesses ({investigation.interviews.keyWitnesses.length})
             </button>
             <button
               type="button"
               onClick={() => setStep3Tab('subject')}
-              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${
-                step3Tab === 'subject'
-                  ? 'bg-cbe-purple text-white shadow-2xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
-              }`}
+              className={`flex-1 py-1.5 px-3 rounded-md text-xs font-semibold transition cursor-pointer text-center ${step3Tab === 'subject'
+                ? 'bg-cbe-purple text-white shadow-2xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+                }`}
             >
               3. Subject Interrogations ({investigation.interviews.subjects.length})
             </button>
@@ -821,19 +822,18 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                         className="text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-1"
                       />
                     </div>
-                    <textarea
-                      rows={2}
-                      value={w.summary}
-                      onChange={(e) => {
+                    <RichTextEditor
+                      content={w.summary}
+                      onChange={(val) => {
                         const next = [...investigation.interviews.neutralWitnesses]
-                        next[i] = { ...next[i], summary: e.target.value }
+                        next[i] = { ...next[i], summary: val }
                         updateState((prev) => ({
                           ...prev,
                           interviews: { ...prev.interviews, neutralWitnesses: next },
                         }))
                       }}
                       placeholder="Statement summary & verified records..."
-                      className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white"
+                      minHeight="100px"
                     />
                   </div>
                 ))}
@@ -907,19 +907,18 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                         className="text-xs text-slate-700 bg-white border border-slate-200 rounded px-2 py-1"
                       />
                     </div>
-                    <textarea
-                      rows={2}
-                      value={w.summary}
-                      onChange={(e) => {
+                    <RichTextEditor
+                      content={w.summary}
+                      onChange={(val) => {
                         const next = [...investigation.interviews.keyWitnesses]
-                        next[i] = { ...next[i], summary: e.target.value }
+                        next[i] = { ...next[i], summary: val }
                         updateState((prev) => ({
                           ...prev,
                           interviews: { ...prev.interviews, keyWitnesses: next },
                         }))
                       }}
                       placeholder="Direct observation statement..."
-                      className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white"
+                      minHeight="100px"
                     />
                   </div>
                 ))}
@@ -1018,19 +1017,18 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                       <label className="text-[11px] font-semibold text-slate-500">
                         Subject Explanation / Recorded Defense
                       </label>
-                      <textarea
-                        rows={3}
-                        value={sub.recordedDefense}
-                        onChange={(e) => {
+                      <RichTextEditor
+                        content={sub.recordedDefense}
+                        onChange={(val) => {
                           const next = [...investigation.interviews.subjects]
-                          next[i] = { ...next[i], recordedDefense: e.target.value }
+                          next[i] = { ...next[i], recordedDefense: val }
                           updateState((prev) => ({
                             ...prev,
                             interviews: { ...prev.interviews, subjects: next },
                           }))
                         }}
                         placeholder="Record subject's formal response to presented evidence..."
-                        className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                        minHeight="120px"
                       />
                     </div>
                   </div>
@@ -1072,7 +1070,7 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                 report: { ...prev.report, [field]: val },
               }))
             }
-            isEditable={true}
+            isEditable={isEditable && !isSarcSecretary}
           />
 
           <div className="flex items-center justify-between pt-2">
@@ -1308,17 +1306,16 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                     <span className="text-[11px] font-semibold text-slate-700">Provided</span>
                   </label>
                 </div>
-                <textarea
-                  rows={2}
-                  value={investigation.closure.whistleblowerFeedbackNotes || ''}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={investigation.closure.whistleblowerFeedbackNotes || ''}
+                  onChange={(val) =>
                     updateState((prev) => ({
                       ...prev,
-                      closure: { ...prev.closure, whistleblowerFeedbackNotes: e.target.value },
+                      closure: { ...prev.closure, whistleblowerFeedbackNotes: val },
                     }))
                   }
                   placeholder="Record formal outcome notification notes (respecting subject privacy)..."
-                  className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white"
+                  minHeight="100px"
                 />
               </div>
 
@@ -1341,51 +1338,187 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
                     <span className="text-[11px] font-semibold text-emerald-700">Active Protection</span>
                   </label>
                 </div>
-                <textarea
-                  rows={2}
-                  value={investigation.closure.antiRetaliationNotes || ''}
-                  onChange={(e) =>
+                <RichTextEditor
+                  content={investigation.closure.antiRetaliationNotes || ''}
+                  onChange={(val) =>
                     updateState((prev) => ({
                       ...prev,
-                      closure: { ...prev.closure, antiRetaliationNotes: e.target.value },
+                      closure: { ...prev.closure, antiRetaliationNotes: val },
                     }))
                   }
                   placeholder="Record ongoing protection protocols and status checks..."
-                  className="w-full text-xs border border-slate-200 rounded px-2 py-1.5 bg-white"
+                  minHeight="100px"
                 />
               </div>
-            </div>
 
-            {/* Formal Case Closure & Program Review */}
-            <div className="pt-2 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-xs font-bold text-slate-900 block">Formal Case Closure</span>
-                <span className="text-[11px] text-slate-500 block">
-                  Archive complete investigation file and conclude matter in FIRMS compliance registry.
-                </span>
+              {/* Monitoring & Follow-Up Assignment (VP-IA) */}
+              {(isVpIa || investigation.closure.followUpManagerAssignedTo) && (
+                <div className="pt-4 border-t border-slate-100 space-y-3">
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">Monitoring &amp; Follow-Up Assignment</span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Assign a Follow-Up Manager for continuous monitoring of systemic measures and disciplinary actions.
+                    </span>
+                  </div>
+                  {isVpIa && !investigation.closure.caseClosureFormal ? (
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="text-xs p-2 rounded-lg border border-slate-200 bg-white text-slate-700 w-64"
+                        value={investigation.closure.followUpManagerAssignedTo || ''}
+                        onChange={(e) => updateState((prev) => ({
+                          ...prev,
+                          closure: {
+                            ...prev.closure,
+                            followUpManagerAssignedTo: e.target.value,
+                            followUpManagerAssignedAt: e.target.value ? new Date().toISOString() : undefined
+                          }
+                        }))}
+                      >
+                        <option value="">-- Select Follow-Up Manager --</option>
+                        <option value="Daniel Tadesse (Follow-Up Manager)">Daniel Tadesse (Follow-Up Manager)</option>
+                        <option value="Sara Ahmed (Follow-Up Manager)">Sara Ahmed (Follow-Up Manager)</option>
+                      </select>
+                      {investigation.closure.followUpManagerAssignedTo && (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded border border-emerald-100">
+                          Assigned
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-200 inline-block">
+                      {investigation.closure.followUpManagerAssignedTo ? (
+                        <>
+                          <span className="font-semibold">{investigation.closure.followUpManagerAssignedTo}</span>
+                          <span className="text-slate-400 ml-2">assigned on {investigation.closure.followUpManagerAssignedAt ? new Date(investigation.closure.followUpManagerAssignedAt).toLocaleDateString() : ''}</span>
+                        </>
+                      ) : (
+                        <span className="italic text-slate-400">No Follow-Up Manager assigned yet.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* SARC Secretary Decision Execution & Minutes of Meetings */}
+              <div className="pt-4 border-t border-slate-100 space-y-4">
+                <div className="flex items-center gap-2">
+                  <Scale className="w-4 h-4 text-cbe-purple" />
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">
+                    SARC Decision Management (SARC Secretary Only)
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="border border-slate-200 rounded-lg p-3.5 bg-slate-50 space-y-3">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={investigation.closure.sarcMomAttached || false}
+                        disabled={!isSarcSecretary || !isEditable}
+                        onChange={(e) =>
+                          updateState((prev) => ({
+                            ...prev,
+                            closure: { ...prev.closure, sarcMomAttached: e.target.checked },
+                          }))
+                        }
+                        className="w-3.5 h-3.5 text-cbe-purple rounded disabled:opacity-50"
+                      />
+                      <span className="text-xs font-bold text-slate-800">MoM Attached</span>
+                    </label>
+
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={investigation.closure.sarcExecutionEvidenceUploaded || false}
+                        disabled={!isSarcSecretary || !isEditable}
+                        onChange={(e) =>
+                          updateState((prev) => ({
+                            ...prev,
+                            closure: { ...prev.closure, sarcExecutionEvidenceUploaded: e.target.checked },
+                          }))
+                        }
+                        className="w-3.5 h-3.5 text-cbe-purple rounded disabled:opacity-50"
+                      />
+                      <span className="text-xs font-bold text-slate-800">Formal Letters of Execution Uploaded</span>
+                    </label>
+
+                    <div className="space-y-1">
+                      <span className="text-xs font-bold text-slate-800">Execution Status</span>
+                      <select
+                        disabled={!isSarcSecretary || !isEditable}
+                        value={investigation.closure.sarcDecisionExecutionStatus || 'Pending'}
+                        onChange={(e) =>
+                          updateState((prev) => ({
+                            ...prev,
+                            closure: {
+                              ...prev.closure,
+                              sarcDecisionExecutionStatus: e.target.value as 'Pending' | 'In Progress' | 'Executed'
+                            },
+                          }))
+                        }
+                        className="w-full text-xs p-2 rounded border border-slate-200 bg-white disabled:bg-slate-100"
+                      >
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Executed">Executed</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="border border-slate-200 rounded-lg p-3.5 bg-slate-50 space-y-2 flex flex-col">
+                    <span className="text-xs font-bold text-slate-800">SARC Decision Notes</span>
+                    <textarea
+                      disabled={!isSarcSecretary || !isEditable}
+                      value={investigation.closure.sarcNotes || ''}
+                      onChange={(e) =>
+                        updateState((prev) => ({
+                          ...prev,
+                          closure: { ...prev.closure, sarcNotes: e.target.value },
+                        }))
+                      }
+                      placeholder="Record details of the decision execution and any relevant minutes summary..."
+                      className="w-full text-xs p-2 rounded border border-slate-200 focus:outline-hidden focus:ring-1 focus:ring-cbe-purple resize-none bg-white flex-1 disabled:bg-slate-100 disabled:text-slate-500"
+                    />
+                  </div>
+                </div>
               </div>
-              <Button
-                size="sm"
-                onClick={() => {
-                  updateState((prev) => ({
-                    ...prev,
-                    closure: {
-                      ...prev.closure,
-                      caseClosureFormal: true,
-                      caseClosedAt: new Date().toISOString(),
-                    },
-                  }))
-                  onSave()
-                }}
-                className={`text-xs font-semibold ${
-                  investigation.closure.caseClosureFormal
+
+              {/* Formal Case Closure & Program Review */}
+              <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <span className="text-xs font-bold text-slate-900 block">Formal Case Closure</span>
+                  <span className="text-[11px] text-slate-500 block">
+                    Archive complete investigation file and conclude matter in FIRMS compliance registry.
+                  </span>
+                  {!isSarcSecretary && (
+                    <span className="text-[11px] font-bold text-rose-500 block mt-1">
+                      Only the SARC Secretary can formally close a case.
+                    </span>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  disabled={!isSarcSecretary || investigation.closure.caseClosureFormal}
+                  onClick={() => {
+                    updateState((prev) => ({
+                      ...prev,
+                      closure: {
+                        ...prev.closure,
+                        caseClosureFormal: true,
+                        caseClosedAt: new Date().toISOString(),
+                      },
+                    }))
+                    onSave()
+                    setTimeout(() => navigate(ROUTES.REPORT_REPOSITORY), 500)
+                  }}
+                  className={`text-xs font-semibold ${investigation.closure.caseClosureFormal
                     ? 'bg-slate-800 text-white'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                }`}
-              >
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                {investigation.closure.caseClosureFormal ? 'Case Formally Closed' : 'Finalize & Close Case'}
-              </Button>
+                    }`}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
+                  {investigation.closure.caseClosureFormal ? 'Case Formally Closed' : 'Finalize & Close Case'}
+                </Button>
+              </div>
             </div>
           </div>
 

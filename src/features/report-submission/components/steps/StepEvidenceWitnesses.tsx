@@ -78,7 +78,7 @@ export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
       {/* Evidence in possession */}
       <div className="space-y-1.5 text-left">
         <label className="block text-xs font-semibold text-slate-700">
-          Evidence in Your Possession <span className="text-rose-500">*</span>
+          Evidence in Your Possession <span className="text-rose-500"></span>
         </label>
         <textarea
           rows={3}
@@ -114,8 +114,8 @@ export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center gap-2 ${isDragging
-              ? 'border-cbe-purple bg-cbe-purple-50/50'
-              : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'
+            ? 'border-cbe-purple bg-cbe-purple-50/50'
+            : 'border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400'
             }`}
         >
           <div className="w-10 h-10 rounded-full bg-cbe-purple-100 flex items-center justify-center text-cbe-purple">

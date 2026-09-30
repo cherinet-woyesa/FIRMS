@@ -63,23 +63,25 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
       {/* Report Recipient */}
       <div className="space-y-1.5 text-left">
         <label className="block text-xs font-semibold text-slate-700">
-          Report Recipient <span className="text-rose-500">*</span>
+          Report Made Against (Determines Routing) <span className="text-rose-500">*</span>
         </label>
         <select
           {...register('reportRecipient')}
           className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
         >
+          {/* If against a Standard employee, it routes to Risk Management & Compliance */}
           <option value="Risk Management & Compliance Division">
+            Standard Employee / Other Division
+          </option>
+          
+          {/* If against Risk Management & Compliance, it bypasses them and routes to President */}
+          <option value="President">
             Risk Management &amp; Compliance Division
           </option>
-          <option value="Vice President of the Internal Audit Division">
-            Vice President of the Internal Audit Division
-          </option>
-          <option value="President">
-            President
-          </option>
+          
+          {/* If against President, it routes to the Board Audit Committee */}
           <option value="Board Audit Committee">
-            Board Audit Committee
+            President
           </option>
         </select>
 

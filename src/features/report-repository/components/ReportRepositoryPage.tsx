@@ -1,4 +1,6 @@
 import React, { useState, useMemo } from 'react'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/store/store'
 import {
   Search,
   Upload,
@@ -14,10 +16,11 @@ import {
   Eye,
   Check,
   Copy,
+  FileBarChart,
 } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { HistoricalReportDossier, RepositoryFilterState } from '../types/repository.types'
-import { fetchRepositoryDossiers, calculateRepositoryStats } from '../api/repositoryApi'
+import { fetchRepositoryDossiers, getRepositoryStats } from '../api/repositoryApi'
 import { ReportDocumentViewerModal } from './ReportDocumentViewerModal'
 import { UploadHistoricalReportModal } from './UploadHistoricalReportModal'
 import { Button } from '@/components/ui/Button'
@@ -25,6 +28,17 @@ import { Spinner } from '@/components/feedback/Spinner'
 
 export const ReportRepositoryPage: React.FC = () => {
   const queryClient = useQueryClient()
+  const { user } = useSelector((state: RootState) => state.auth)
+  const userRoles = user?.roles || []
+  
+  const isTeamLeaderOrHigher = userRoles.some(r => 
+    r.includes('Team Leader') || 
+    r.includes('Manager') || 
+    r.includes('Director') || 
+    r.includes('VP') || 
+    r.includes('President') ||
+    r.includes('Administrator')
+  )
 
   // Filter state
   const [filters, setFilters] = useState<RepositoryFilterState>({
@@ -34,6 +48,7 @@ export const ReportRepositoryPage: React.FC = () => {
     category: 'all',
     district: 'all',
     disposition: 'all',
+    auditor: 'all',
     sortBy: 'date-desc',
   })
 
@@ -49,7 +64,7 @@ export const ReportRepositoryPage: React.FC = () => {
   })
 
   // Calculate statistics across all available dossiers
-  const stats = useMemo(() => calculateRepositoryStats(dossiers), [dossiers])
+  const stats = useMemo(() => getRepositoryStats(dossiers), [dossiers])
 
   const hasActiveFilters =
     filters.searchQuery.trim().length > 0 ||
@@ -57,7 +72,9 @@ export const ReportRepositoryPage: React.FC = () => {
     filters.sourceType !== 'all' ||
     filters.category !== 'all' ||
     filters.district !== 'all' ||
-    filters.disposition !== 'all'
+    filters.disposition !== 'all' ||
+    filters.auditor !== 'all' ||
+    filters.minAmount !== undefined
 
   const handleResetFilters = () => {
     setFilters({
@@ -67,6 +84,9 @@ export const ReportRepositoryPage: React.FC = () => {
       category: 'all',
       district: 'all',
       disposition: 'all',
+      auditor: 'all',
+      minAmount: undefined,
+      maxAmount: undefined,
       sortBy: 'date-desc',
     })
   }
@@ -94,12 +114,21 @@ export const ReportRepositoryPage: React.FC = () => {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-cbe-purple shrink-0" />
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">
-              Report Repository
+              Reports
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto">
+        <div className="flex items-center gap-2.5 shrink-0 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+          {isTeamLeaderOrHigher && (
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto text-cbe-purple border-cbe-purple hover:bg-purple-50 font-medium text-xs flex items-center justify-center gap-2 px-4 shadow-2xs"
+            >
+              <FileBarChart className="w-3.5 h-3.5 shrink-0" />
+              <span>Generate Periodic Report</span>
+            </Button>
+          )}
           <Button
             onClick={() => setIsUploadModalOpen(true)}
             className="w-full sm:w-auto bg-cbe-purple hover:bg-cbe-purple-700 text-white font-medium text-xs flex items-center justify-center gap-2 px-4 shadow-2xs"
@@ -264,6 +293,47 @@ export const ReportRepositoryPage: React.FC = () => {
               <option value="Substantiated - Internal Recovery / Restitution">Restitution</option>
               <option value="Substantiated - Administrative Sanction">Sanction</option>
               <option value="Closed - Full Restitution Paid">Closed</option>
+            </select>
+          </div>
+
+          {/* Auditor / Investigator Filter */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+            <span className="text-[11px] font-semibold text-slate-500">Auditor:</span>
+            <select
+              value={filters.auditor}
+              onChange={(e) => setFilters({ ...filters, auditor: e.target.value })}
+              className="bg-transparent font-bold text-slate-800 focus:outline-hidden cursor-pointer max-w-[110px] truncate"
+            >
+              <option value="all">All</option>
+              <option value="Cherinet Woyesa">Cherinet Woyesa</option>
+              <option value="Abebe Kebede">Abebe Kebede</option>
+              <option value="Kaleb Tesfaye">Kaleb Tesfaye</option>
+            </select>
+          </div>
+
+          {/* Amount Filter */}
+          <div className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5">
+            <span className="text-[11px] font-semibold text-slate-500">Amount:</span>
+            <select
+              value={filters.minAmount ? String(filters.minAmount) : 'all'}
+              onChange={(e) => {
+                const val = e.target.value
+                if (val === 'all') {
+                  setFilters({ ...filters, minAmount: undefined, maxAmount: undefined })
+                } else if (val === '0') {
+                  setFilters({ ...filters, minAmount: 0, maxAmount: 1000000 })
+                } else if (val === '1000000') {
+                  setFilters({ ...filters, minAmount: 1000000, maxAmount: 5000000 })
+                } else if (val === '5000000') {
+                  setFilters({ ...filters, minAmount: 5000000, maxAmount: undefined })
+                }
+              }}
+              className="bg-transparent font-bold text-slate-800 focus:outline-hidden cursor-pointer"
+            >
+              <option value="all">Any Amount</option>
+              <option value="0">&lt; 1M ETB</option>
+              <option value="1000000">1M - 5M ETB</option>
+              <option value="5000000">&gt; 5M ETB</option>
             </select>
           </div>
 

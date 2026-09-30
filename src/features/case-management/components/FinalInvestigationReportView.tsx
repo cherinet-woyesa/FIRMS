@@ -8,9 +8,14 @@ import {
   MessageSquare,
   Lock,
   PenTool,
+  X,
+  Send,
 } from 'lucide-react'
 import type { FinalInvestigationReport, FindingItem, ExhibitItem } from '../types/investigation.types'
 import { Button } from '@/components/ui/Button'
+import { RichTextEditor } from '@/components/ui/RichTextEditor'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/store/store'
 
 interface Props {
   report: FinalInvestigationReport
@@ -23,6 +28,38 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
   onChangeReport,
   isEditable = true,
 }) => {
+  const { user } = useSelector((state: RootState) => state.auth)
+  const userRoles = user?.roles || []
+  const isVpIa = userRoles.some((r) => r.includes('VP') || r.includes('VP-IA') || r.includes('VP–IA'))
+  const isFiDirector = userRoles.includes('FI Director') || userRoles.includes('Director')
+  const isFiManager = userRoles.includes('FI Manager') || userRoles.includes('Manager')
+  const isInvestigator = userRoles.some(r => r.includes('Investigator') || r.includes('Auditor') || r.includes('Team Leader'))
+  
+  const [activeCommentSection, setActiveCommentSection] = React.useState<string | null>(null)
+  const [comments, setComments] = React.useState<Record<string, { author: string; text: string; time: string }[]>>({
+    'Executive Summary': [{ author: 'Amina Mohammed (VP-IA)', text: 'Please ensure the financial impact figure perfectly matches the final GL reconciliation before I sign off.', time: '2 hours ago' }],
+  })
+  const [newComment, setNewComment] = React.useState('')
+
+  const handleAddComment = () => {
+    if (!newComment.trim() || !activeCommentSection) return
+    const current = comments[activeCommentSection] || []
+    
+    // Get real user name or fallback
+    const userName = user ? `${user.firstName} ${user.lastName}` : 'You'
+    const userRole = user && user.roles.length > 0 ? user.roles[0] : 'Reviewer'
+    const authorString = `${userName} (${userRole})`
+
+    setComments({
+      ...comments,
+      [activeCommentSection]: [
+        ...current,
+        { author: authorString, text: newComment.trim(), time: 'Just now' },
+      ],
+    })
+    setNewComment('')
+  }
+
   const handlePrint = () => {
     window.print()
   }
@@ -31,6 +68,25 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
     if (onChangeReport && isEditable) {
       onChangeReport(field, value)
     }
+  }
+
+  const renderRichField = (field: keyof FinalInvestigationReport, value: string, placeholder?: string) => {
+    if (isEditable && onChangeReport) {
+      return (
+        <RichTextEditor
+          content={value}
+          onChange={(val) => updateField(field, val)}
+          placeholder={placeholder}
+          minHeight="100px"
+        />
+      )
+    }
+    return (
+      <div
+        className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed prose prose-sm max-w-none"
+        dangerouslySetInnerHTML={{ __html: value || '<span class="text-slate-400 italic">No content provided</span>' }}
+      />
+    )
   }
 
   const handleAddFinding = () => {
@@ -118,7 +174,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
             Direct editing is prohibited. Reviewers must provide feedback via comments.
           </span>
         </div>
-        <Button size="sm" variant="outline" className="h-7 text-[10px] border-amber-300 text-amber-700 hover:bg-amber-100 bg-white cursor-pointer">
+        <Button size="sm" variant="outline" onClick={() => setActiveCommentSection('General Comments')} className="h-7 text-[10px] border-amber-300 text-amber-700 hover:bg-amber-100 bg-white cursor-pointer">
           <MessageSquare className="w-3 h-3 mr-1" /> View All Comments
         </Button>
       </div>
@@ -130,7 +186,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold text-slate-900">Executive Summary</h3>
-            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+            <button onClick={() => setActiveCommentSection('Executive Summary')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -178,9 +234,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Allegation Summary
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.allegationSummary}
-          </div>
+          {renderRichField('allegationSummary', report.allegationSummary, 'Summarize the core allegations...')}
         </div>
 
         {/* Recommendation Summary */}
@@ -188,9 +242,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Recommendation Summary
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.recommendation}
-          </div>
+          {renderRichField('recommendation', report.recommendation, 'Provide final recommendations...')}
         </div>
       </div>
 
@@ -201,7 +253,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold text-slate-900">Background &amp; Scope</h3>
-            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+            <button onClick={() => setActiveCommentSection('Background & Scope')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -238,18 +290,14 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Original Allegation (Verbatim)
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed italic">
-            "{report.originalAllegationVerbatim}"
-          </div>
+          {renderRichField('originalAllegationVerbatim', report.originalAllegationVerbatim, 'Paste the exact original allegation...')}
         </div>
 
         <div>
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Investigation Scope &amp; Target Records
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.scopeOfInvestigation}
-          </div>
+          {renderRichField('scopeOfInvestigation', report.scopeOfInvestigation, 'Detail the boundaries and targets of this investigation...')}
         </div>
       </div>
 
@@ -260,7 +308,7 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-bold text-slate-900">Investigation Methodology</h3>
-            <button className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+            <button onClick={() => setActiveCommentSection('Investigation Methodology')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
               <MessageSquare className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -270,27 +318,21 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Document &amp; Record Review
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.documentReview}
-          </div>
+          {renderRichField('documentReview', report.documentReview, 'Detail the documents reviewed...')}
         </div>
 
         <div>
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Forensic &amp; Financial Analysis
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.forensicAnalysis}
-          </div>
+          {renderRichField('forensicAnalysis', report.forensicAnalysis, 'Detail the forensic analysis performed...')}
         </div>
 
         <div>
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Witness &amp; Subject Interviews Conducted
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.interviewsConducted}
-          </div>
+          {renderRichField('interviewsConducted', report.interviewsConducted, 'Summarize the interviews conducted...')}
         </div>
       </div>
 
@@ -300,7 +342,12 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Factual Findings</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-bold text-slate-900">Factual Findings</h3>
+              <button onClick={() => setActiveCommentSection('Factual Findings')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Documented facts supported by corroborated documentary or testimonial evidence
             </p>
@@ -361,26 +408,27 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* CONCLUSION & POLICY VIOLATIONS                                            */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Conclusion &amp; Policy Violations</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Conclusion &amp; Policy Violations</h3>
+            <button onClick={() => setActiveCommentSection('Conclusion & Policy Violations')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div>
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Legal &amp; Policy Violations Established
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-800 leading-relaxed font-medium">
-            {report.policyLawViolated}
-          </div>
+          {renderRichField('policyLawViolated', report.policyLawViolated, 'List established policy or law violations...')}
         </div>
 
         <div>
           <label className="block text-[11px] font-bold text-slate-700 uppercase tracking-wider mb-2">
             Final Investigative Conclusion
           </label>
-          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-            {report.conclusionText}
-          </div>
+          {renderRichField('conclusionText', report.conclusionText, 'Write the final investigative conclusion...')}
         </div>
       </div>
 
@@ -388,8 +436,13 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* RECOMMENDATIONS & REFERRALS                                               */}
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
-        <div className="border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Recommendations &amp; Referrals</h3>
+        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Recommendations &amp; Referrals</h3>
+            <button onClick={() => setActiveCommentSection('Recommendations & Referrals')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         <div>
@@ -433,7 +486,12 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4 shadow-2xs">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Annexes &amp; Supplementary Materials</h3>
+            <div className="flex items-center gap-3">
+              <h3 className="text-sm font-bold text-slate-900">Annexes &amp; Supplementary Materials</h3>
+              <button onClick={() => setActiveCommentSection('Annexes & Supplementary Materials')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+                <MessageSquare className="w-3.5 h-3.5" />
+              </button>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
               Attach supplementary materials, worksheets, and evidence to the case file
             </p>
@@ -484,10 +542,13 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
       {/* ========================================================================= */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-5 shadow-2xs">
         <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-          <h3 className="text-sm font-bold text-slate-900">Digital Signatures &amp; Approvals</h3>
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <Lock className="w-3 h-3" /> cryptographically verified
-          </span>
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-bold text-slate-900">Digital Signatures &amp; Approvals</h3>
+            <button onClick={() => setActiveCommentSection('Digital Signatures')} className="text-slate-400 hover:text-cbe-purple transition cursor-pointer" title="Add Comment">
+              <MessageSquare className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -499,18 +560,183 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
               Lead Investigator Digital Signature
             </span>
-            <div className="flex flex-col">
-              <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
-                Signed by: {report.investigatorSignature}
+            {report.investigatorSignature ? (
+              <>
+                <div className="flex flex-col">
+                  <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
+                    Signed by: {report.investigatorSignature}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono">
+                    Hash: 0x8F9B...3A2C
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+                  <span>Timestamp:</span>
+                  <span className="font-medium text-slate-800">{report.signatureDate}</span>
+                </div>
+              </>
+            ) : isInvestigator && isEditable ? (
+              <div className="relative z-10 pt-2 space-y-3">
+                <p className="text-xs text-slate-500">
+                  Digitally sign this report to submit it to the FI Manager for review.
+                </p>
+                <Button 
+                  size="sm" 
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white w-full"
+                  onClick={() => {
+                    if (onChangeReport) {
+                      onChangeReport('investigatorSignature', user ? `${user.firstName} ${user.lastName} (Lead Investigator)` : 'Lead Investigator')
+                      onChangeReport('signatureDate', new Date().toISOString())
+                      onChangeReport('managerEndorsementStatus', 'Pending Review')
+                    }
+                  }}
+                >
+                  Sign &amp; Submit Draft
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-xs font-medium text-slate-400 italic">
+                Pending Investigator Signature
+              </div>
+            )}
+          </div>
+
+          {/* FI Manager Endorsement */}
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3 relative overflow-hidden">
+            <div className="absolute -right-4 -bottom-4 opacity-5">
+              <PenTool className="w-24 h-24" />
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                FI Manager Endorsement
               </span>
-              <span className="text-[9px] text-slate-400 font-mono">
-                Hash: 0x8F9B...3A2C
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 border border-blue-200">
+                {report.managerEndorsementStatus || 'Pending Review'}
               </span>
             </div>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
-              <span>Timestamp:</span>
-              <span className="font-medium text-slate-800">{report.signatureDate}</span>
+            
+            {report.managerEndorsementStatus === 'Endorsed' ? (
+              <>
+                <div className="flex flex-col">
+                  <span className="font-mono text-blue-600 text-xs font-bold bg-blue-50 w-fit px-2 py-1 rounded border border-blue-100 mb-2">
+                    Endorsed by: {report.managerEndorsedBy}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono">
+                    Hash: 0x4A2B...1F9C
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+                  <span>Timestamp:</span>
+                  <span className="font-medium text-slate-800">{report.managerEndorsementDate}</span>
+                </div>
+              </>
+            ) : isFiManager && isEditable ? (
+              <div className="relative z-10 pt-2 space-y-3">
+                <p className="text-xs text-slate-500">
+                  Review and endorse this draft report before submission to the FI Director.
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-blue-600 hover:bg-blue-700 text-white flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('managerEndorsementStatus', 'Endorsed')
+                        onChangeReport('managerEndorsedBy', user ? `${user.firstName} ${user.lastName} (FI Manager)` : 'FI Manager')
+                        onChangeReport('managerEndorsementDate', new Date().toISOString())
+                      }
+                    }}
+                  >
+                    Endorse Draft
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('managerEndorsementStatus', 'Revision Requested')
+                      }
+                    }}
+                  >
+                    Request Revision
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-xs font-medium text-slate-400 italic">
+                Pending FI Manager Review
+              </div>
+            )}
+          </div>
+
+          {/* FI Director Endorsement */}
+          <div className="p-4 rounded-xl bg-slate-50/80 border border-slate-200 space-y-3 relative overflow-hidden">
+            <div className="absolute -right-4 -bottom-4 opacity-5">
+              <PenTool className="w-24 h-24" />
             </div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                FI Director Endorsement
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                {report.directorEndorsementStatus || 'Pending Review'}
+              </span>
+            </div>
+            
+            {report.directorEndorsementStatus === 'Endorsed' ? (
+              <>
+                <div className="flex flex-col">
+                  <span className="font-mono text-amber-600 text-xs font-bold bg-amber-50 w-fit px-2 py-1 rounded border border-amber-100 mb-2">
+                    Endorsed by: {report.directorEndorsedBy}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono">
+                    Hash: 0x9B4E...7C1F
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+                  <span>Timestamp:</span>
+                  <span className="font-medium text-slate-800">{report.directorEndorsementDate}</span>
+                </div>
+              </>
+            ) : isFiDirector && isEditable ? (
+              <div className="relative z-10 pt-2 space-y-3">
+                <p className="text-xs text-slate-500">
+                  Review and endorse this draft report before submission to the VP-IA.
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-amber-500 hover:bg-amber-600 text-white flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('directorEndorsementStatus', 'Endorsed')
+                        onChangeReport('directorEndorsedBy', user ? `${user.firstName} ${user.lastName} (FI Director)` : 'FI Director')
+                        onChangeReport('directorEndorsementDate', new Date().toISOString())
+                      }
+                    }}
+                  >
+                    Endorse Draft
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('directorEndorsementStatus', 'Revision Requested')
+                      }
+                    }}
+                  >
+                    Request Revision
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-xs font-medium text-slate-400 italic">
+                Pending FI Director Review
+              </div>
+            )}
           </div>
 
           {/* Approving Authority */}
@@ -526,21 +752,129 @@ export const FinalInvestigationReportView: React.FC<Props> = ({
                 {report.approvalStatus}
               </span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
-                Signed by: {report.reviewedAndApprovedBy}
-              </span>
-              <span className="text-[9px] text-slate-400 font-mono">
-                Hash: 0x1E4D...9F8A
-              </span>
-            </div>
-            <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
-              <span>Timestamp:</span>
-              <span className="font-medium text-slate-800">{report.approvalDate}</span>
-            </div>
+            
+            {report.approvalStatus === 'Approved' ? (
+              <>
+                <div className="flex flex-col">
+                  <span className="font-mono text-emerald-600 text-xs font-bold bg-emerald-50 w-fit px-2 py-1 rounded border border-emerald-100 mb-2">
+                    Signed by: {report.reviewedAndApprovedBy}
+                  </span>
+                  <span className="text-[9px] text-slate-400 font-mono">
+                    Hash: 0x1E4D...9F8A
+                  </span>
+                </div>
+                <div className="flex items-center justify-between pt-2 border-t border-slate-200 text-[11px] text-slate-500 relative z-10">
+                  <span>Timestamp:</span>
+                  <span className="font-medium text-slate-800">{report.approvalDate}</span>
+                </div>
+              </>
+            ) : isVpIa && isEditable ? (
+              <div className="relative z-10 pt-2 space-y-3">
+                <p className="text-xs text-slate-500">
+                  As the VP-IA, you must review and formally approve this report. Once approved, it will be forwarded to the SARC Secretary / President's Office.
+                </p>
+                <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('approvalStatus', 'Approved')
+                        onChangeReport('reviewedAndApprovedBy', user ? `${user.firstName} ${user.lastName} (VP-IA)` : 'VP-IA')
+                        onChangeReport('approvalDate', new Date().toISOString())
+                      }
+                    }}
+                  >
+                    Approve &amp; Sign Off
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 flex-1"
+                    onClick={() => {
+                      if (onChangeReport) {
+                        onChangeReport('approvalStatus', 'Revision Requested')
+                      }
+                    }}
+                  >
+                    Request Revision
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-xs font-medium text-slate-400 italic">
+                Pending VP-IA Review
+              </div>
+            )}
           </div>
         </div>
       </div>
+
+      {/* ========================================================================= */}
+      {/* COMMENTING SIDEBAR (FR 3.7.2)                                             */}
+      {/* ========================================================================= */}
+      {activeCommentSection && (
+        <div className="fixed inset-y-0 right-0 w-80 bg-white border-l border-slate-200 shadow-2xl z-50 flex flex-col print:hidden">
+          {/* Header */}
+          <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-cbe-purple" />
+              <h3 className="font-bold text-sm text-slate-900">Reviewer Comments</h3>
+            </div>
+            <button
+              onClick={() => setActiveCommentSection(null)}
+              className="p-1 text-slate-400 hover:bg-slate-200 rounded transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="px-4 py-3 bg-amber-50 border-b border-amber-200 text-xs text-amber-800 font-medium">
+            Commenting on: <span className="font-bold">{activeCommentSection}</span>
+          </div>
+
+          {/* Comment List */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {(comments[activeCommentSection] || []).length === 0 ? (
+              <div className="text-center text-slate-400 text-xs py-8">
+                No comments yet on this section.
+              </div>
+            ) : (
+              (comments[activeCommentSection] || []).map((c, i) => (
+                <div key={i} className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-xs text-slate-900">{c.author}</span>
+                    <span className="text-[10px] text-slate-500">{c.time}</span>
+                  </div>
+                  <p className="text-xs text-slate-700 leading-relaxed">{c.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Comment Input */}
+          {isEditable && (
+            <div className="p-4 border-t border-slate-200 bg-slate-50">
+              <textarea
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+                placeholder="Add your review comment here..."
+                className="w-full text-xs p-3 rounded-lg border border-slate-200 focus:outline-hidden focus:ring-1 focus:ring-cbe-purple resize-none bg-white mb-2"
+                rows={3}
+              />
+              <Button
+                onClick={handleAddComment}
+                disabled={!newComment.trim()}
+                className="w-full bg-cbe-purple hover:bg-cbe-purple-700 text-white text-xs h-8 flex items-center justify-center gap-1.5 shadow-2xs"
+              >
+                <Send className="w-3 h-3" />
+                <span>Post Comment</span>
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   )
 }

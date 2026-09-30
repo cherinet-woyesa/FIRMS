@@ -1,5 +1,7 @@
-import React, { useState } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useSelector } from 'react-redux'
+import { RootState } from '@/store/store'
 import { useQuery } from '@tanstack/react-query'
 import {
   ArrowLeft,
@@ -19,15 +21,16 @@ import {
 } from 'lucide-react'
 import { fetchCaseById, updateCaseTriage, updateCaseFullInvestigation } from '../api/getCases'
 import { PreliminaryAssessmentReportView } from './PreliminaryAssessmentReportView'
-import { FinalInvestigationReportView } from './FinalInvestigationReportView'
+import { FullInvestigationWorkspace } from './FullInvestigationWorkspace'
 import type { PreliminaryAssessmentReport, TriageWorkflowState } from '../types/triage.types'
-import type { FullInvestigationState, FinalInvestigationReport } from '../types/investigation.types'
+import type { FullInvestigationState } from '../types/investigation.types'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/feedback/Spinner'
 import { ROUTES } from '@/config/routes'
 
 export const InvestigationWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const caseId = id || 'case-02'
 
   const { data: caseData, isLoading } = useQuery({
@@ -35,24 +38,142 @@ export const InvestigationWorkspace: React.FC = () => {
     queryFn: () => fetchCaseById(caseId),
   })
 
+
+  const { user } = useSelector((state: RootState) => state.auth)
+  const userRoles = user?.roles || []
+  const isPresident = userRoles.includes('President')
+  const isVpIa = userRoles.some(r => r.includes('VP') || r.includes('VP-IA') || r.includes('VP–IA'))
+  const isFiDirector = userRoles.includes('FI Director') || userRoles.includes('Director')
+  const isFiManager = userRoles.includes('FI Manager') || (userRoles.includes('Manager') && !userRoles.includes('Follow-Up Manager') && !userRoles.includes('Manager - Follow-Up'))
+  const isFollowUpManager = userRoles.includes('Follow-Up Manager') || userRoles.includes('Manager - Follow-Up')
+  const isSarcSecretary = userRoles.includes('SARC Secretary')
+  const canInitiateInvestigation = isPresident || isVpIa
+  const isManager = isPresident || isVpIa || isFiDirector || isFiManager || userRoles.includes('Administrator')
+  const isInvestigator = userRoles.some(r => r.includes('Investigator') || r.includes('Auditor') || r.includes('Team Leader'))
+  const isEditable = !isFollowUpManager && !isSarcSecretary
+
   // Phase is strictly sequential: 'triage' (Phase 1) -> 'full-investigation' (Phase 2)
-  // Phase 2 is NEVER visible until Phase 1 is officially completed and escalated
   const [currentPhase, setCurrentPhase] = useState<'triage' | 'full-investigation'>('triage')
-  const [activeTriageStep, setActiveTriageStep] = useState<number>(1)
+
+  // Managers start at step 1. Investigators start at step 2.
+  const [activeTriageStep, setActiveTriageStep] = useState<number>(isManager && !isInvestigator ? 1 : 2)
+
   const [triageState, setTriageState] = useState<TriageWorkflowState | null>(null)
   const [reportState, setReportState] = useState<PreliminaryAssessmentReport | null>(null)
   const [fullInvestigationState, setFullInvestigationState] = useState<FullInvestigationState | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showReportDrawer, setShowReportDrawer] = useState(false)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (caseData) {
-      setTriageState(caseData.triageWorkflow)
-      setReportState(caseData.preliminaryAssessmentReport)
+      setTriageState(caseData.triageWorkflow || {
+        isAcknowledged: false,
+        legalHoldInitiated: false,
+        noConflictSigned: false,
+        isWithinJurisdiction: false,
+        specificityRating: 'Medium',
+        corroborationRating: 'Medium',
+        severityRating: 'Medium',
+        orgChartReviewed: false,
+        osintReviewed: false,
+        internalRecordsReviewed: false,
+        predicationDetermination: 'Insufficient',
+        recommendedAction: 'Full Investigation'
+      })
+
+      setReportState(caseData.preliminaryAssessmentReport || {
+        caseId: caseData.referenceKey,
+        dateReportReceipt: caseData.submittedAt,
+        investigatorTeamAssigned: '',
+        dateAssessmentCompletion: '',
+        sourceReportingChannel: caseData.reportingMode || '',
+        allegedSubjects: '',
+        allegedOrganizationUnit: caseData.targetDepartment || '',
+        typeOfMisconduct: caseData.category || '',
+        allegedPeriodOfIncident: '',
+        allegationSummary: caseData.summary,
+        applicableLawPolicy: '',
+        specificityAndDetail: '',
+        evidenceProvided: '',
+        initialReviewFindings: '',
+        credibilityAssessment: '',
+        severityAssessment: '',
+        predicationDetermination: 'Insufficient',
+        recommendedAction: 'Full Investigation',
+        recommendedActionJustification: '',
+        nextStepsInterimMeasures: ''
+      })
+
       if (caseData.fullInvestigation) {
         setFullInvestigationState(caseData.fullInvestigation)
+      } else {
+        // Also provide a default for full investigation state just in case it's needed later
+        setFullInvestigationState({
+          currentStep: 1,
+          planning: {
+            isAuthorized: false,
+            authorizedBy: '',
+            authorizationDate: '',
+            approvalScope: [],
+            specificAllegations: '',
+            investigationTimeframe: '',
+            targetSubjects: '',
+            requiredResources: '',
+            workPlanFinalized: false,
+            workPlanNotes: ''
+          },
+          evidence: {
+            seizedRecords: [],
+            forensicAuditEngaged: false,
+            forensicAgency: '',
+            fundsTracedETB: '',
+            quantifiedLossesETB: '',
+            illicitPatternsIdentified: '',
+            covertExternalInquiries: []
+          },
+          interviews: {
+            neutralWitnesses: [],
+            keyWitnesses: [],
+            subjects: []
+          },
+          report: {
+            caseId: '',
+            dateFinalSubmission: '',
+            allegationSummary: '',
+            investigativeFinding: 'Not Substantiated',
+            estimatedFinancialImpact: '',
+            recommendation: '',
+            sourceOfReport: '',
+            originalAllegationVerbatim: '',
+            dateInvestigationCommenced: '',
+            scopeOfInvestigation: '',
+            investigativeTeam: '',
+            documentReview: '',
+            forensicAnalysis: '',
+            interviewsConducted: '',
+            findings: [],
+            conclusionText: '',
+            findingDetermination: 'Not Substantiated',
+            policyLawViolated: '',
+            disciplinaryLegalActions: [],
+            systemicPreventativeMeasures: [],
+            exhibits: [],
+            investigatorSignature: '',
+            signatureDate: '',
+            reviewedAndApprovedBy: '',
+            approvalDate: '',
+            approvalStatus: 'Pending Review'
+          },
+          closure: {
+            disciplinaryActions: [],
+            systemicMeasures: [],
+            whistleblowerFeedbackProvided: false,
+            antiRetaliationActive: false,
+            caseClosureFormal: false
+          }
+        })
       }
-      // If case was already officially escalated to Phase 2 (like case-01), activate full-investigation
+
       if (caseData.status === 'INVESTIGATION_ACTIVE' || caseData.status === 'RESOLVED') {
         setCurrentPhase('full-investigation')
       } else {
@@ -101,6 +222,11 @@ export const InvestigationWorkspace: React.FC = () => {
     setTimeout(() => setSaveSuccess(false), 2000)
   }
 
+  const handleHandover = async () => {
+    await handleSaveTriage()
+    navigate(ROUTES.CASES)
+  }
+
   const handleSaveFullInvestigation = async () => {
     if (fullInvestigationState) {
       await updateCaseFullInvestigation(caseId, fullInvestigationState)
@@ -109,7 +235,6 @@ export const InvestigationWorkspace: React.FC = () => {
     }
   }
 
-  // Sent from Phase 1 toward Phase 2 upon formal predication sign-off
   const handleEscalateToFullInvestigation = async () => {
     await updateCaseTriage(caseId, triageState, reportState)
     if (fullInvestigationState) {
@@ -129,7 +254,7 @@ export const InvestigationWorkspace: React.FC = () => {
 
   return (
     <div className="space-y-4 max-w-6xl mx-auto pb-12">
-      {/* 1. Sleek, Unified Top Header (Matching Benchmark UI) */}
+      {/* 1. Sleek, Unified Top Header */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
         <div className="flex items-center gap-3">
           <Link
@@ -169,7 +294,6 @@ export const InvestigationWorkspace: React.FC = () => {
             </span>
           )}
 
-          {/* On-demand Case Details button */}
           <Button
             variant="outline"
             size="sm"
@@ -181,23 +305,20 @@ export const InvestigationWorkspace: React.FC = () => {
             <span>Case Details</span>
           </Button>
 
-          <Button
-            onClick={currentPhase === 'triage' ? handleSaveTriage : handleSaveFullInvestigation}
-            className="bg-cbe-purple hover:bg-cbe-purple-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs"
-          >
-            <Save className="w-3.5 h-3.5" />
-            <span>Save Progress</span>
-          </Button>
+          {isEditable && (
+            <Button
+              onClick={currentPhase === 'triage' ? handleSaveTriage : handleSaveFullInvestigation}
+              className="bg-cbe-purple hover:bg-cbe-purple-700 text-white font-medium text-xs flex items-center gap-1.5 shadow-2xs"
+            >
+              <Save className="w-3.5 h-3.5" />
+              <span>Save Progress</span>
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* PHASE 1: PRELIMINARY ASSESSMENT & TRIAGE                                  */}
-      {/* (Phase 2 is completely hidden until Phase 1 is finished and escalated)     */}
-      {/* ========================================================================= */}
       {currentPhase === 'triage' && (
         <div className="space-y-4">
-          {/* Active Step Panel */}
           <div>
             {/* STEP 1: Secure and Acknowledge */}
             {activeTriageStep === 1 && (
@@ -304,7 +425,7 @@ export const InvestigationWorkspace: React.FC = () => {
                     </Button>
                   </div>
 
-                  {/* Action 3: Appoint Investigator */}
+                  {/* Action 3: Assign Investigation Team */}
                   <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div
@@ -321,28 +442,50 @@ export const InvestigationWorkspace: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <span className="font-bold text-slate-800 text-xs">Appoint Lead Investigator</span>
+                        <span className="font-bold text-slate-800 text-xs">Assign Investigation Team</span>
                         <p className="text-[11px] text-slate-500">
                           {triageState.investigatorAssigned
-                            ? `Assigned: ${triageState.investigatorAssigned} • ${triageState.noConflictSigned ? 'No Conflict Signed' : 'Pending Conflict Form'
+                            ? `Assigned Team: ${triageState.investigatorAssigned} • ${triageState.noConflictSigned ? 'No Conflict Confirmed' : 'Pending Conflict Review'
                             }`
-                            : ''}
+                            : 'Select a team to handle this case'}
                         </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        placeholder="Officer name"
+                      <select
                         value={triageState.investigatorAssigned || ''}
                         onChange={(e) => {
                           const val = e.target.value
                           setTriageState((prev) => ({ ...prev!, investigatorAssigned: val }))
                           handleUpdateReportField('investigatorTeamAssigned', val)
                         }}
-                        className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white w-36 focus:ring-1 focus:ring-cbe-purple"
-                      />
+                        className="text-xs border border-slate-300 rounded-lg px-2.5 py-1.5 bg-white w-48 focus:ring-1 focus:ring-cbe-purple"
+                      >
+                        <option value="">Select Assignee...</option>
+                        {isPresident ? (
+                          <>
+                            <option value="VP-IA (Vice President Internal Audit)">VP-IA (Vice President Internal Audit)</option>
+                          </>
+                        ) : isVpIa ? (
+                          <>
+                            <option value="FI Director (Fraud Investigation)">FI Director (Fraud Investigation)</option>
+                          </>
+                        ) : isFiDirector ? (
+                          <>
+                            <option value="FI Manager (Procurement & Logistics)">FI Manager (Procurement & Logistics)</option>
+                            <option value="FI Manager (HR & Administration)">FI Manager (HR & Administration)</option>
+                            <option value="FI Manager (Branch Operations)">FI Manager (Branch Operations)</option>
+                          </>
+                        ) : (
+                          <>
+                            <option value="Team Alpha (Procurement Fraud)">Team Alpha (Procurement Fraud)</option>
+                            <option value="Team Beta (Internal Audit)">Team Beta (Internal Audit)</option>
+                            <option value="Ad-Hoc Team Gamma">Ad-Hoc Investigation Team</option>
+                          </>
+                        )}
+                      </select>
+
                       <label className="flex items-center gap-1.5 cursor-pointer bg-white px-2.5 py-1.5 rounded-lg border border-slate-200 text-[11px] font-medium text-slate-700">
                         <input
                           type="checkbox"
@@ -356,18 +499,59 @@ export const InvestigationWorkspace: React.FC = () => {
                       </label>
                     </div>
                   </div>
+
+                  {/* President's Directives */}
+                  {isPresident ? (
+                    <div className="mt-3 p-3.5 rounded-xl border border-purple-200 bg-purple-50/50 flex flex-col gap-2">
+                      <label className="font-bold text-slate-800 text-xs flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-cbe-purple" />
+                        President's Directives & Instructions (for VP-IA)
+                      </label>
+                      <textarea
+                        value={triageState.executiveDirectives || ''}
+                        onChange={(e) => {
+                          const val = e.target.value
+                          setTriageState((prev) => ({ ...prev!, executiveDirectives: val }))
+                          handleUpdateReportField('executiveDirectives', val)
+                        }}
+                        placeholder="Provide explicit instructions, boundaries, or specific requests for the VP-IA to carry out..."
+                        className="text-xs border border-purple-200 rounded-lg p-2.5 bg-white min-h-[80px] focus:ring-1 focus:ring-cbe-purple w-full"
+                      />
+                    </div>
+                  ) : triageState.executiveDirectives && (
+                    <div className="mt-3 p-3.5 rounded-xl border border-amber-200 bg-amber-50 flex flex-col gap-2">
+                      <label className="font-bold text-amber-900 text-xs flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        Directives & Instructions from President
+                      </label>
+                      <p className="text-xs text-amber-800 bg-white/50 p-2.5 rounded border border-amber-100 whitespace-pre-line">
+                        {triageState.executiveDirectives}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Step Navigation */}
                 <div className="flex justify-end pt-3 border-t border-slate-100">
-                  <Button
-                    size="sm"
-                    onClick={() => setActiveTriageStep(2)}
-                    className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    <span>Proceed to Step 2: Initial Review &amp; Triage</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
-                  </Button>
+                  {isManager && !isInvestigator && isEditable ? (
+                    <Button
+                      size="sm"
+                      onClick={handleHandover}
+                      className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      <span>Save & Handover to Assigned Team</span>
+                      <Check className="w-3.5 h-3.5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      onClick={() => setActiveTriageStep(2)}
+                      className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      <span>Proceed to Step 2: Initial Review &amp; Triage</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
@@ -489,20 +673,15 @@ export const InvestigationWorkspace: React.FC = () => {
 
                 {/* Step Navigation */}
                 <div className="flex items-center justify-between pt-3 border-t border-slate-100">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setActiveTriageStep(1)}
-                    className="text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    <ArrowLeft className="w-3.5 h-3.5" /> Back to Step 1
-                  </Button>
+
+
+
                   <Button
                     size="sm"
                     onClick={() => setActiveTriageStep(3)}
                     className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
                   >
-                    <span>Proceed to Step 3: Covert Fact-Checking</span>
+                    <span>Covert Fact-Checking</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Button>
                 </div>
@@ -646,11 +825,11 @@ export const InvestigationWorkspace: React.FC = () => {
                 <PreliminaryAssessmentReportView
                   report={reportState}
                   onChangeReport={handleUpdateReportField}
-                  isEditable={true}
+                  isEditable={isEditable}
                 />
 
                 {/* ACTION: ONLY WHEN Predication is Sufficient & Full Investigation chosen, ESCALATE TO PHASE 2 */}
-                {reportState.predicationDetermination === 'Sufficient' &&
+                {isEditable && reportState.predicationDetermination === 'Sufficient' &&
                   reportState.recommendedAction === 'Full Investigation' && (
                     <div className="p-5 rounded-2xl bg-purple-50/90 border-2 border-cbe-purple flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
                       <div className="space-y-1">
@@ -661,11 +840,20 @@ export const InvestigationWorkspace: React.FC = () => {
                         <p className="text-xs text-slate-700">
                           Sufficient grounds found. Ready to formally transition this case into <strong>Phase 2: Full Investigation</strong>.
                         </p>
+                        {!canInitiateInvestigation && (
+                          <p className="text-xs text-rose-500 font-bold mt-1">
+                            Only the President or VP-IA can initiate a Full Investigation. This recommendation must be reviewed by them.
+                          </p>
+                        )}
                       </div>
                       <Button
                         size="sm"
+                        disabled={!canInitiateInvestigation}
                         onClick={handleEscalateToFullInvestigation}
-                        className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-bold flex items-center gap-2 shrink-0 px-4 py-2.5 shadow-sm"
+                        className={`text-white text-xs font-bold flex items-center gap-2 shrink-0 px-4 py-2.5 shadow-sm ${canInitiateInvestigation
+                          ? 'bg-cbe-purple hover:bg-cbe-purple-700'
+                          : 'bg-slate-400 cursor-not-allowed'
+                          }`}
                       >
                         <span>Escalate to Full Investigation</span>
                         <ArrowRight className="w-4 h-4" />
@@ -684,114 +872,120 @@ export const InvestigationWorkspace: React.FC = () => {
                     <ArrowLeft className="w-3.5 h-3.5" />
                     <span>Back to Step 3: Fact-Checking</span>
                   </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleSaveTriage}
-                    className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
-                  >
-                    <Save className="w-3.5 h-3.5" />
-                    <span>Save Assessment</span>
-                  </Button>
+                  {isEditable && (
+                    <Button
+                      size="sm"
+                      onClick={handleSaveTriage}
+                      className="bg-cbe-purple text-white hover:bg-cbe-purple-700 text-xs font-semibold flex items-center gap-1.5"
+                    >
+                      <Save className="w-3.5 h-3.5" />
+                      <span>Save Assessment</span>
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
-      )}
+      )
+      }
 
       {/* ========================================================================= */}
       {/* PHASE 2: FULL INVESTIGATION                                               */}
       {/* (Appears ONLY when escalated from Phase 1, or for active investigation cases) */}
       {/* ========================================================================= */}
-      {currentPhase === 'full-investigation' && fullInvestigationState && (
-        <div className="space-y-4">
-          <FinalInvestigationReportView
-            report={fullInvestigationState.report}
-            onChangeReport={(field: keyof FinalInvestigationReport, val: any) => {
-              setFullInvestigationState((prev) =>
-                prev ? { ...prev, report: { ...prev.report, [field]: val } } : prev
-              )
-            }}
-            isEditable={true}
-          />
-        </div>
-      )}
+      {
+        currentPhase === 'full-investigation' && fullInvestigationState && (
+          <div className="space-y-4">
+          <div className="space-y-4">
+            <FullInvestigationWorkspace
+              investigation={fullInvestigationState}
+              onUpdateInvestigation={setFullInvestigationState}
+              onSave={handleSaveFullInvestigation}
+              isEditable={isEditable || isSarcSecretary} // SARC Secretary needs to edit Step 5
+            />
+          </div>
+          </div>
+        )
+      }
 
       {/* ========================================================================= */}
       {/* Slide-Over Drawer: Whistleblower Original Submission Details              */}
       {/* ========================================================================= */}
-      {showReportDrawer && (
-        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
-          <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
-            onClick={() => setShowReportDrawer(false)}
-          />
-          <div className="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col z-10 overflow-y-auto">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-20">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-cbe-purple" />
-                <h3 className="font-bold text-sm text-slate-900">
-                  Original Whistleblower Report
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowReportDrawer(false)}
-                className="p-1 rounded text-slate-400 hover:text-slate-600 transition cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            <div className="p-5 space-y-4 text-xs text-slate-700">
-              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
-                <div className="text-[10px] uppercase font-bold text-slate-400">Reference Number</div>
-                <div className="font-mono font-bold text-sm text-cbe-purple">{caseData.referenceKey}</div>
-                <div className="text-[11px] text-slate-500">
-                  Submitted: {new Date(caseData.submittedAt).toLocaleString()}
+      {
+        showReportDrawer && (
+          <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+            <div
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs transition-opacity"
+              onClick={() => setShowReportDrawer(false)}
+            />
+            <div className="relative w-full max-w-lg bg-white h-full shadow-2xl flex flex-col z-10 overflow-y-auto">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between sticky top-0 bg-white z-20">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-cbe-purple" />
+                  <h3 className="font-bold text-sm text-slate-900">
+                    Original Whistleblower Report
+                  </h3>
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setShowReportDrawer(false)}
+                  className="p-1 rounded text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-slate-900 block">Allegation Summary</span>
-                <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">{caseData.summary}</p>
-              </div>
+              <div className="p-5 space-y-4 text-xs text-slate-700">
+                <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 space-y-1">
+                  <div className="text-[10px] uppercase font-bold text-slate-400">Reference Number</div>
+                  <div className="font-mono font-bold text-sm text-cbe-purple">{caseData.referenceKey}</div>
+                  <div className="text-[11px] text-slate-500">
+                    Submitted: {new Date(caseData.submittedAt).toLocaleString()}
+                  </div>
+                </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-slate-900 block">Detailed Statement</span>
-                <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 whitespace-pre-line leading-relaxed">
-                  {caseData.detailedNarrative}
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <span className="font-bold text-slate-900 block">Incident Date</span>
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">{caseData.incidentDate}</div>
+                  <span className="font-bold text-slate-900 block">Allegation Summary</span>
+                  <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">{caseData.summary}</p>
                 </div>
+
                 <div className="space-y-1">
-                  <span className="font-bold text-slate-900 block">Incident Location</span>
-                  <div className="bg-slate-50 p-2 rounded border border-slate-100">{caseData.incidentLocation}</div>
+                  <span className="font-bold text-slate-900 block">Detailed Statement</span>
+                  <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 whitespace-pre-line leading-relaxed">
+                    {caseData.detailedNarrative}
+                  </p>
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-slate-900 block">Accused Person(s) &amp; Department</span>
-                <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
-                  <p><strong>Names:</strong> {caseData.corruptedPersonNames}</p>
-                  <p><strong>Position:</strong> {caseData.jobPositions}</p>
-                  <p><strong>Unit:</strong> {caseData.divisionDepartmentBranch}</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <span className="font-bold text-slate-900 block">Incident Date</span>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">{caseData.incidentDate}</div>
+                  </div>
+                  <div className="space-y-1">
+                    <span className="font-bold text-slate-900 block">Incident Location</span>
+                    <div className="bg-slate-50 p-2 rounded border border-slate-100">{caseData.incidentLocation}</div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="space-y-1">
-                <span className="font-bold text-slate-900 block">Evidence in Possession</span>
-                <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">{caseData.evidenceInPossession}</p>
+                <div className="space-y-1">
+                  <span className="font-bold text-slate-900 block">Accused Person(s) &amp; Department</span>
+                  <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
+                    <p><strong>Names:</strong> {caseData.corruptedPersonNames}</p>
+                    <p><strong>Position:</strong> {caseData.jobPositions}</p>
+                    <p><strong>Unit:</strong> {caseData.divisionDepartmentBranch}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="font-bold text-slate-900 block">Evidence in Possession</span>
+                  <p className="bg-slate-50 p-2.5 rounded-lg border border-slate-100">{caseData.evidenceInPossession}</p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       {/* Return to Top Floating Button */}
       <div className="fixed bottom-6 right-8 z-30 print:hidden">
@@ -805,6 +999,6 @@ export const InvestigationWorkspace: React.FC = () => {
           <span>Back to Top</span>
         </button>
       </div>
-    </div>
+    </div >
   )
 }

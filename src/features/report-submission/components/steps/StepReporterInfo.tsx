@@ -1,6 +1,7 @@
 import React from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { UserCheck, EyeOff } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { UserCheck, EyeOff, Building2 } from 'lucide-react'
 import type { CorruptionReportInput } from '../../types/report.types'
 import { REPORTER_RELATIONSHIPS } from '@/constants/categories'
 import { Input } from '@/components/ui/Input'
@@ -16,6 +17,9 @@ export const StepReporterInfo: React.FC<StepProps> = ({ form }) => {
     setValue,
     formState: { errors },
   } = form
+
+  const location = useLocation()
+  const isDashboard = location.pathname.includes('/dashboard')
 
   const reportingMode = watch('reportingMode')
 
@@ -77,6 +81,30 @@ export const StepReporterInfo: React.FC<StepProps> = ({ form }) => {
               <span className="text-xs font-semibold text-cbe-purple">Selected</span>
             )}
           </button>
+
+          {isDashboard && (
+            <button
+              type="button"
+              onClick={() => setValue('reportingMode', 'standard')}
+              className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between ${reportingMode === 'standard'
+                  ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500'
+                  : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+            >
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
+                  <Building2 className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-semibold text-slate-900 text-sm">Escalated / Formal Intake</span>
+                  <span className="text-[10px] text-slate-500 font-medium">President's Office / Branches</span>
+                </div>
+              </div>
+              {reportingMode === 'standard' && (
+                <span className="text-xs font-semibold text-emerald-600">Selected</span>
+              )}
+            </button>
+          )}
         </div>
         {errors.reportingMode && (
           <p className="text-xs text-rose-500 mt-1">{errors.reportingMode.message}</p>

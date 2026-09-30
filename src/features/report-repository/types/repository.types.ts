@@ -77,6 +77,7 @@ export interface RepositoryFilterState {
   category: string // 'all' or category
   district: string // 'all' or district
   disposition: string // 'all' or disposition
+  auditor: string // 'all' or investigator name
   minAmount?: number
   maxAmount?: number
   sortBy: 'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc' | 'docket-asc'

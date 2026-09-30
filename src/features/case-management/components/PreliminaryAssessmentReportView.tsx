@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import type { PreliminaryAssessmentReport } from '../types/triage.types'
 import { Button } from '@/components/ui/Button'
+import { RichTextEditor } from '@/components/forms/RichTextEditor'
 
 interface Props {
   report: PreliminaryAssessmentReport
@@ -211,23 +212,21 @@ export const PreliminaryAssessmentReportView: React.FC<Props> = ({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Allegation Summary</label>
-                  <textarea
-                    rows={2}
+                  <RichTextEditor
                     value={report.allegationSummary}
-                    onChange={(e) => updateField('allegationSummary', e.target.value)}
-                    disabled={!isEditable}
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    onChange={(val) => updateField('allegationSummary', val)}
+                    isEditable={isEditable}
+                    minHeight="100px"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Applicable Law / Policy</label>
-                  <textarea
-                    rows={2}
+                  <RichTextEditor
                     value={report.applicableLawPolicy}
-                    onChange={(e) => updateField('applicableLawPolicy', e.target.value)}
-                    disabled={!isEditable}
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    onChange={(val) => updateField('applicableLawPolicy', val)}
+                    isEditable={isEditable}
+                    minHeight="100px"
                   />
                 </div>
               </div>
@@ -316,23 +315,21 @@ export const PreliminaryAssessmentReportView: React.FC<Props> = ({
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 pt-1">
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Evidence In Possession</label>
-                  <textarea
-                    rows={2}
+                  <RichTextEditor
                     value={report.evidenceProvided}
-                    onChange={(e) => updateField('evidenceProvided', e.target.value)}
-                    disabled={!isEditable}
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    onChange={(val) => updateField('evidenceProvided', val)}
+                    isEditable={isEditable}
+                    minHeight="100px"
                   />
                 </div>
 
                 <div className="space-y-1">
                   <label className="text-[11px] font-semibold text-slate-500">Initial Review &amp; OSINT Findings</label>
-                  <textarea
-                    rows={2}
+                  <RichTextEditor
                     value={report.initialReviewFindings}
-                    onChange={(e) => updateField('initialReviewFindings', e.target.value)}
-                    disabled={!isEditable}
-                    className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+                    onChange={(val) => updateField('initialReviewFindings', val)}
+                    isEditable={isEditable}
+                    minHeight="100px"
                   />
                 </div>
               </div>
@@ -487,13 +484,12 @@ export const PreliminaryAssessmentReportView: React.FC<Props> = ({
           <label className="text-xs font-bold text-slate-800 block">
             C. Next Steps &amp; Interim Measures
           </label>
-          <textarea
-            rows={2}
+          <RichTextEditor
             value={report.nextStepsInterimMeasures}
-            onChange={(e) => updateField('nextStepsInterimMeasures', e.target.value)}
-            disabled={!isEditable}
+            onChange={(val) => updateField('nextStepsInterimMeasures', val)}
+            isEditable={isEditable}
             placeholder="e.g. Freeze procurement award, secure evidence logs, notify internal audit head..."
-            className="w-full text-xs border border-slate-200 rounded-lg px-3 py-2 bg-white text-slate-900 focus:outline-none focus:border-cbe-purple"
+            minHeight="100px"
           />
         </div>
 

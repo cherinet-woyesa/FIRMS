@@ -31,6 +31,7 @@ export interface TriageWorkflowState {
   recommendedActionJustification?: string
   referralTarget?: string
   nextStepsInterimMeasures?: string
+  executiveDirectives?: string
 }
 
 export interface PreliminaryAssessmentReport {
@@ -62,4 +63,5 @@ export interface PreliminaryAssessmentReport {
   recommendedActionJustification: string
   referralTarget?: string
   nextStepsInterimMeasures: string
+  executiveDirectives?: string
 }

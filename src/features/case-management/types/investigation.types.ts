@@ -118,6 +118,12 @@ export interface FinalInvestigationReport {
   // 8. Sign-Off
   investigatorSignature: string
   signatureDate: string
+  managerEndorsementStatus?: 'Endorsed' | 'Pending Review' | 'Revision Requested'
+  managerEndorsedBy?: string
+  managerEndorsementDate?: string
+  directorEndorsementStatus?: 'Endorsed' | 'Pending Review' | 'Revision Requested'
+  directorEndorsedBy?: string
+  directorEndorsementDate?: string
   reviewedAndApprovedBy: string
   approvalDate: string
   approvalStatus: 'Approved' | 'Pending Review' | 'Revision Requested'
@@ -146,6 +152,15 @@ export interface ResolutionAndClosure {
   whistleblowerFeedbackNotes?: string
   antiRetaliationActive: boolean
   antiRetaliationNotes?: string
+  followUpManagerAssignedTo?: string
+  followUpManagerAssignedAt?: string
+  
+  // SARC Secretary Fields
+  sarcMomAttached?: boolean
+  sarcDecisionExecutionStatus?: 'Pending' | 'In Progress' | 'Executed'
+  sarcExecutionEvidenceUploaded?: boolean
+  sarcNotes?: string
+
   caseClosureFormal: boolean
   caseClosedAt?: string
   programReviewNotes?: string
