@@ -18,11 +18,9 @@ export const StepCorruptedParties: React.FC<StepProps> = ({ form }) => {
       {/* Header */}
       <div className="border-b border-slate-200 pb-3">
         <h2 className="text-xl font-bold text-slate-900">
-          Section 3: Details of Corrupted Person(s) and Organization
+          Details of Corrupted Person(s) and Organization
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Provide all known identifying information.
-        </p>
+
       </div>
 
       {/* Organization details */}

@@ -73,6 +73,7 @@ export const ReportWizard: React.FC = () => {
       priorReports: '',
       resolutionSought: '',
       customResolutionDetails: '',
+      reportRecipient: 'Risk Management & Compliance Division',
       confirmationAcknowledged: false as unknown as true,
     },
   })
@@ -194,9 +195,7 @@ export const ReportWizard: React.FC = () => {
           Corruption &amp; Misconduct Report
 
         </h1>
-        <p className="text-sm text-slate-600 mt-1 max-w-2xl">
-          Complies with Commercial Bank of Ethiopia Whistleblower Protection Directives. Complete all 5 sections with factual information.
-        </p>
+
       </div>
 
       {/* 5-Step Visual Stepper Bar */}

@@ -1,93 +1,37 @@
-import React from 'react'
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { Shield, LayoutDashboard, Inbox, History, Settings, LogOut, Users, Lock, Workflow } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Outlet, useLocation } from 'react-router-dom'
+import { DashboardSidebar, DashboardHeader, DashboardFooter } from './components'
 import { ROUTES } from '@/config/routes'
-import { useAuthStore } from '@/store/useAuthStore'
 
 export const DashboardLayout: React.FC = () => {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const location = useLocation()
-  const navigate = useNavigate()
-  const { user, logout } = useAuthStore()
 
-  const handleLogout = () => {
-    logout()
-    navigate(ROUTES.LOGIN)
-  }
-
-  const navLinks = [
-    { label: 'Overview', to: ROUTES.DASHBOARD, icon: LayoutDashboard },
-    { label: 'Case Registry', to: ROUTES.CASES, icon: Inbox },
-    { label: 'User Management', to: ROUTES.USERS, icon: Users },
-    { label: 'Access Management', to: ROUTES.ACCESS_MANAGEMENT, icon: Lock },
-    { label: 'Audit Logs', to: ROUTES.AUDIT_LOGS, icon: History },
-    { label: 'Workflow Management', to: ROUTES.WORKFLOWS, icon: Workflow },
-    { label: 'Settings', to: ROUTES.SETTINGS, icon: Settings },
-  ]
+  // Automatically close mobile menu on page navigation
+  useEffect(() => {
+    setMobileMenuOpen(false)
+  }, [location.pathname])
 
   return (
-    <div className="min-h-screen flex bg-slate-50 text-slate-900 font-sans">
-      {/* Sidebar */}
-      <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 border-r border-slate-800">
-        <div className="h-16 flex items-center gap-3 px-6 border-b border-slate-800">
-          <Shield className="w-6 h-6 text-cbe-gold" />
-          <div className="flex flex-col">
-            <span className="font-bold text-sm tracking-tight text-white">ComplianceDesk</span>
-            <span className="text-[10px] text-cbe-gold-300 uppercase tracking-wider">Investigator Suite</span>
-          </div>
-        </div>
+    <div className="h-screen flex bg-slate-50 text-slate-900 font-sans overflow-hidden">
+      {/* 1. Modular Responsive Sidebar (desktop pinned, mobile slide-over) */}
+      <DashboardSidebar
+        mobileOpen={mobileMenuOpen}
+        onCloseMobile={() => setMobileMenuOpen(false)}
+      />
 
-        <nav className="flex-1 px-4 py-6 space-y-1.5">
-          {navLinks.map((item) => {
-            const Icon = item.icon
-            const isActive = location.pathname === item.to
-            return (
-              <Link
-                key={item.to}
-                to={item.to}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${
-                  isActive
-                    ? 'bg-cbe-purple text-white shadow-sm'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{item.label}</span>
-              </Link>
-            )
-          })}
-        </nav>
+      {/* 2. Main Content Pane - Contains responsive header, independent scrollable page body, and footer */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        {/* Modular Header with Mobile Menu Trigger */}
+        <DashboardHeader onToggleMobileMenu={() => setMobileMenuOpen((prev) => !prev)} />
 
-        {/* User Profile & Logout */}
-        <div className="p-4 border-t border-slate-800 bg-slate-950/40">
-          <div className="flex items-center justify-between">
-            <div className="truncate">
-              <p className="text-xs font-semibold text-white truncate">{user?.name || 'Officer Lead'}</p>
-              <p className="text-[11px] text-slate-400 truncate">{user?.department || 'Internal Ethics'}</p>
-            </div>
-            <button
-              onClick={handleLogout}
-              title="Logout"
-              className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      </aside>
-
-      {/* Main Content Pane */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-slate-700">Internal Ethics & Compliance Committee</h2>
-          <div className="flex items-center gap-3 text-xs text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span>Secure Officer Session Active</span>
-          </div>
-        </header>
-
-        <main className={`flex-1 overflow-y-auto ${location.pathname.startsWith(ROUTES.WORKFLOWS) ? '' : 'p-8'}`}>
+        {/* Dynamic Page Body - Dedicated scroll container */}
+        <main id="main-content-scroll" className={`flex-1 overflow-y-auto ${location.pathname.startsWith(ROUTES.WORKFLOWS) ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
           <Outlet />
         </main>
+
+        {/* Modular Footer */}
+        <DashboardFooter />
       </div>
     </div>
   )

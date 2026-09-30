@@ -1,14 +1,18 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { CaseSummary } from '@/types/common.types'
 import { CASE_STATUSES, CASE_PRIORITIES } from '@/constants/caseStatus'
 import { Badge } from '@/components/ui/Badge'
 import { Clock } from 'lucide-react'
+import { ROUTES } from '@/config/routes'
 
 interface CaseTableProps {
   cases: CaseSummary[]
 }
 
 export const CaseTable: React.FC<CaseTableProps> = ({ cases }) => {
+  const navigate = useNavigate()
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
       <div className="overflow-x-auto">
@@ -26,8 +30,12 @@ export const CaseTable: React.FC<CaseTableProps> = ({ cases }) => {
           </thead>
           <tbody className="divide-y divide-slate-100">
             {cases.map((c) => (
-              <tr key={c.id} className="hover:bg-slate-50/80 transition cursor-pointer">
-                <td className="px-6 py-4 font-mono font-bold text-indigo-600">
+              <tr
+                key={c.id}
+                onClick={() => navigate(ROUTES.CASE_DETAIL(c.id))}
+                className="hover:bg-slate-50 transition cursor-pointer"
+              >
+                <td className="px-6 py-4 font-mono font-bold text-cbe-purple">
                   {c.referenceKey}
                 </td>
                 <td className="px-6 py-4 font-medium text-slate-900 max-w-xs truncate">

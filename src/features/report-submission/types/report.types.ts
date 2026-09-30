@@ -46,6 +46,7 @@ export const step5Schema = z.object({
   priorReports: z.string().min(1, 'Prior reports is required (or state None)'),
   resolutionSought: z.string().min(1, 'Please select or describe resolution sought'),
   customResolutionDetails: z.string().optional(),
+  reportRecipient: z.string().min(1, 'Report recipient is required'),
   confirmationAcknowledged: z.boolean().refine((val) => val === true, {
     message: 'You must confirm the disclosure is made in good faith',
   }),
@@ -90,6 +91,7 @@ export const corruptionReportSchema = z.object({
   priorReports: z.string().min(1, 'Prior reports is required (or state None)'),
   resolutionSought: z.string().min(1, 'Please select or describe resolution sought'),
   customResolutionDetails: z.string().optional(),
+  reportRecipient: z.string().min(1, 'Report recipient is required'),
   confirmationAcknowledged: z.boolean().refine((val) => val === true, {
     message: 'You must confirm the disclosure is made in good faith',
   }),
@@ -112,4 +114,5 @@ export interface ReportSubmissionResult {
   trackingUrl: string
   reportingMode: 'anonymous' | 'confidential'
   divisionDepartmentBranch?: string
+  reportRecipient?: string
 }

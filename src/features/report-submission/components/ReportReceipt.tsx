@@ -56,6 +56,13 @@ export const ReportReceipt: React.FC<ReportReceiptProps> = ({ result, onReset })
         <div className="text-2xl sm:text-3xl font-mono font-bold text-cbe-purple select-all tracking-wider">
           {result.caseReferenceKey}
         </div>
+
+        {result.reportRecipient && (
+          <div className="pt-2 border-t border-slate-200 text-xs text-slate-600 flex items-center justify-between">
+            <span>Submitted To:</span>
+            <span className="font-semibold text-slate-800">{result.reportRecipient}</span>
+          </div>
+        )}
       </div>
 
       {/* Action Buttons */}

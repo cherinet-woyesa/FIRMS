@@ -18,11 +18,9 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
       {/* Header */}
       <div className="border-b border-slate-200 pb-3">
         <h2 className="text-xl font-bold text-slate-900">
-          Section 5: Previous Actions and Resolution
+          Previous Actions and Resolution
         </h2>
-        <p className="text-xs text-slate-500 mt-0.5">
-          Helps understand case history and avoid duplication.
-        </p>
+
       </div>
 
       {/* Prior Reports */}
@@ -59,6 +57,34 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
         </select>
         {errors.resolutionSought && (
           <p className="text-xs text-rose-500 mt-1">{errors.resolutionSought.message}</p>
+        )}
+      </div>
+
+      {/* Report Recipient */}
+      <div className="space-y-1.5 text-left">
+        <label className="block text-xs font-semibold text-slate-700">
+          Report Recipient <span className="text-rose-500">*</span>
+        </label>
+        <select
+          {...register('reportRecipient')}
+          className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
+        >
+          <option value="Risk Management & Compliance Division">
+            Risk Management &amp; Compliance Division
+          </option>
+          <option value="Vice President of the Internal Audit Division">
+            Vice President of the Internal Audit Division
+          </option>
+          <option value="President">
+            President
+          </option>
+          <option value="Board Audit Committee">
+            Board Audit Committee
+          </option>
+        </select>
+
+        {errors.reportRecipient && (
+          <p className="text-xs text-rose-500 mt-1">{errors.reportRecipient.message}</p>
         )}
       </div>
 
