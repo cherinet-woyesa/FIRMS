@@ -77,6 +77,9 @@ export interface ExhibitItem {
   exhibitLetter: string
   title: string
   description: string
+  attachmentRef?: string
+  fileName?: string
+  fileSize?: string
 }
 
 export interface FinalInvestigationReport {
@@ -109,8 +112,8 @@ export interface FinalInvestigationReport {
   policyLawViolated: string
 
   // 6. Recommendations
-  disciplinaryLegalActions: string[]
-  systemicPreventativeMeasures: string[]
+  disciplinaryLegalActions: string[] | string
+  systemicPreventativeMeasures: string[] | string
 
   // 7. Exhibits (Appendices)
   exhibits: ExhibitItem[]

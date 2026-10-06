@@ -6,11 +6,7 @@ import {
   ArrowLeft,
   Send,
   Check,
-  User,
   AlertTriangle,
-  Building,
-  Paperclip,
-  FileCheck2,
 } from 'lucide-react'
 import {
   corruptionReportSchema,
@@ -30,12 +26,20 @@ import { StepEvidenceWitnesses } from './steps/StepEvidenceWitnesses'
 import { StepPriorActionsResolution } from './steps/StepPriorActionsResolution'
 import { Button } from '@/components/ui/Button'
 
+const STEP_TITLES: Record<number, string> = {
+  1: 'Reporter Information',
+  2: 'Details of the Incident',
+  3: 'Details of the Person and Organization',
+  4: 'Supporting Evidence & Witnesses',
+  5: 'Previous Actions & Resolution',
+}
+
 const STEPS = [
-  { id: 1, title: 'Reporter', icon: User },
-  { id: 2, title: 'Incident', icon: AlertTriangle },
-  { id: 3, title: 'Involved Parties', icon: Building },
-  { id: 4, title: 'Evidence', icon: Paperclip },
-  { id: 5, title: 'Resolution', icon: FileCheck2 },
+  { id: 1, title: 'Reporter' },
+  { id: 2, title: 'Incident' },
+  { id: 3, title: 'Involved Parties' },
+  { id: 4, title: 'Evidence' },
+  { id: 5, title: 'Resolution' },
 ]
 
 export const ReportWizard: React.FC = () => {
@@ -47,7 +51,7 @@ export const ReportWizard: React.FC = () => {
     resolver: zodResolver(corruptionReportSchema),
     mode: 'onTouched',
     defaultValues: {
-      reportingMode: '' as unknown as 'anonymous',
+      reportingMode: 'confidential',
       fullName: '',
       phoneNumber: '',
       email: '',
@@ -101,20 +105,8 @@ export const ReportWizard: React.FC = () => {
         corruptionType: values.corruptionType,
         summary: values.summary,
         detailedNarrative: values.detailedNarrative,
-        incidentDate: values.incidentDate,
-        howAware: values.howAware,
-        incidentLocation: values.incidentLocation,
-        whyCorrupt: values.whyCorrupt,
       })
-      await trigger([
-        'corruptionType',
-        'summary',
-        'detailedNarrative',
-        'incidentDate',
-        'howAware',
-        'incidentLocation',
-        'whyCorrupt',
-      ])
+      await trigger(['corruptionType', 'summary', 'detailedNarrative'])
     } else if (currentStep === 3) {
       stepValidation = step3Schema.safeParse({
         divisionDepartmentBranch: values.divisionDepartmentBranch,
@@ -187,24 +179,31 @@ export const ReportWizard: React.FC = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
-      {/* Top Banner & Title */}
-      <div className="text-center sm:text-left">
-
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+    <div className="max-w-2xl sm:max-w-3xl mx-auto space-y-4 sm:space-y-5">
+      {/* Top Banner & Subtitle matching Figma screenshot */}
+      <div className="text-left space-y-1">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
           Corruption &amp; Misconduct Report
-
         </h1>
-
+        <p className="text-xs text-slate-500 font-normal">
+          Step {currentStep} of 5 - {STEP_TITLES[currentStep]}
+        </p>
       </div>
 
-      {/* 5-Step Visual Stepper Bar */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 shadow-sm">
-        <div className="grid grid-cols-5 gap-2 sm:gap-4 relative">
+      {/* 5-Step Stepper Card matching Figma screenshot */}
+      <div className="bg-white border border-slate-200/80 rounded-xl px-5 sm:px-8 py-3.5 shadow-xs">
+        <div className="relative flex items-center justify-between">
+          {/* Continuous horizontal connecting track line behind the circles */}
+          <div className="absolute top-[14px] left-[20px] right-[20px] h-[1.5px] bg-[#eeecf0] -translate-y-1/2 z-0">
+            <div
+              className="h-full bg-cbe-purple transition-all duration-300 ease-out"
+              style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+            />
+          </div>
+
           {STEPS.map((step) => {
             const isCompleted = currentStep > step.id
             const isCurrent = currentStep === step.id
-            const Icon = step.icon
 
             return (
               <button
@@ -216,48 +215,46 @@ export const ReportWizard: React.FC = () => {
                     setCurrentStep(step.id)
                   }
                 }}
-                className={`flex flex-col items-center text-center group transition cursor-pointer ${step.id > currentStep ? 'cursor-not-allowed opacity-40' : ''
+                className={`flex flex-col items-center relative z-10 transition cursor-pointer group ${step.id > currentStep ? 'cursor-not-allowed' : ''
                   }`}
               >
-                {/* Step Circle */}
+                {/* Number Circle */}
                 <div
-                  className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs ${isCompleted
-                    ? 'bg-cbe-purple text-white'
-                    : isCurrent
-                      ? 'bg-cbe-purple text-white ring-4 ring-cbe-purple/20 shadow-md'
-                      : 'bg-slate-100 text-slate-500 border border-slate-300'
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${isCurrent
+                      ? 'bg-cbe-purple text-white shadow-xs'
+                      : isCompleted
+                        ? 'bg-cbe-purple text-white shadow-xs'
+                        : 'bg-white border border-slate-300 text-slate-500'
                     }`}
                 >
-                  {isCompleted ? <Check className="w-5 h-5 stroke-[2.5]" /> : <Icon className="w-4 h-4 sm:w-5 sm:h-5" />}
+                  {isCompleted ? (
+                    <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+                  ) : (
+                    step.id
+                  )}
                 </div>
 
-                {/* Step Labels */}
-                <div className="mt-2 hidden sm:block">
-                  <span
-                    className={`block text-xs font-bold ${isCurrent ? 'text-cbe-purple' : isCompleted ? 'text-slate-900' : 'text-slate-400'
-                      }`}
-                  >
-                    {step.title}
-                  </span>
-                </div>
+                {/* Step Label below */}
+                <span
+                  className={`text-xs mt-1.5 font-medium transition ${isCurrent
+                      ? 'text-cbe-purple font-semibold'
+                      : isCompleted
+                        ? 'text-slate-800'
+                        : 'text-slate-500'
+                    }`}
+                >
+                  {step.title}
+                </span>
               </button>
             )
           })}
-        </div>
-
-        {/* Linear Progress Indicator */}
-        <div className="w-full bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
-          <div
-            className="bg-cbe-gold h-full transition-all duration-300 ease-out"
-            style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
-          />
         </div>
       </div>
 
       {/* Main Step Form Card */}
       <form
         onSubmit={handleSubmit(onFinalSubmit)}
-        className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-10 space-y-8"
+        className="bg-white rounded-xl sm:rounded-2xl shadow-xs border border-slate-200/80 p-5 sm:p-8 space-y-5"
       >
         {/* Step-specific Error Notice */}
         {stepError && (
@@ -281,7 +278,7 @@ export const ReportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={handlePrevStep}
-                className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-700 text-sm font-semibold hover:bg-slate-50 transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 rounded-md border border-slate-200 bg-white text-cbe-purple text-xs sm:text-sm font-medium hover:bg-purple-50/50 hover:border-cbe-purple/40 shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -296,7 +293,7 @@ export const ReportWizard: React.FC = () => {
               <button
                 type="button"
                 onClick={handleNextStep}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-lg bg-cbe-purple text-white text-sm font-semibold hover:bg-cbe-purple-700 shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-md bg-cbe-purple text-white text-xs sm:text-sm font-medium hover:bg-cbe-purple-700 shadow-sm transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Continue</span>
                 <ArrowRight className="w-4 h-4" />

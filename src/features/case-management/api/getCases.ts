@@ -92,6 +92,16 @@ export async function updateCaseFullInvestigation(
   return true
 }
 
+export async function handoverCase(id: string): Promise<boolean> {
+  try {
+    const response = await apiClient.post<{ success: boolean; message?: string }>(`/api/Cases/${id}/handover`)
+    return response.data.success
+  } catch (error) {
+    console.error(`Error handing over case ${id}:`, error)
+    return false
+  }
+}
+
 // Stubs for frontend components that might still reference MOCK_REGISTRY_CASES directly
 export const MOCK_REGISTRY_CASES: CaseSummary[] = []
 export function addSubmittedCaseToStorage(_newCase: CaseDetailedInvestigation): void {

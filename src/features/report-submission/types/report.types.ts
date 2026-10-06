@@ -17,10 +17,10 @@ export const step2Schema = z.object({
   corruptionType: z.string().min(1, 'Please select the alleged type of corruption'),
   summary: z.string().min(1, 'Summary of allegation is required'),
   detailedNarrative: z.string().min(1, 'Detailed narrative is required'),
-  incidentDate: z.string().min(1, 'Date or timeline is required'),
-  howAware: z.string().min(1, 'Please explain how you became aware'),
-  incidentLocation: z.string().min(1, 'Location is required'),
-  whyCorrupt: z.string().min(1, 'Please clarify why you consider this corrupt'),
+  incidentDate: z.string().optional(),
+  howAware: z.string().optional(),
+  incidentLocation: z.string().optional(),
+  whyCorrupt: z.string().optional(),
 })
 
 // Section 3: Details of Corrupted Person(s) & Organization ("The Who")
@@ -68,10 +68,10 @@ export const corruptionReportSchema = z.object({
   corruptionType: z.string().min(1, 'Please select the alleged type of corruption'),
   summary: z.string().min(1, 'Summary of allegation is required'),
   detailedNarrative: z.string().min(1, 'Detailed narrative is required'),
-  incidentDate: z.string().min(1, 'Date or timeline is required'),
-  howAware: z.string().min(1, 'Please explain how you became aware'),
-  incidentLocation: z.string().min(1, 'Location is required'),
-  whyCorrupt: z.string().min(1, 'Please clarify why you consider this corrupt'),
+  incidentDate: z.string().optional(),
+  howAware: z.string().optional(),
+  incidentLocation: z.string().optional(),
+  whyCorrupt: z.string().optional(),
 
   // Section 3
   divisionDepartmentBranch: z.string().min(1, 'Branch or Department is required'),

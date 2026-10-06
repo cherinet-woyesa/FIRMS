@@ -1,10 +1,9 @@
 import React from 'react'
 import type { UseFormReturn } from 'react-hook-form'
 import { useLocation } from 'react-router-dom'
-import { UserCheck, EyeOff, Building2 } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import type { CorruptionReportInput } from '../../types/report.types'
 import { REPORTER_RELATIONSHIPS } from '@/constants/categories'
-import { Input } from '@/components/ui/Input'
 
 interface StepProps {
   form: UseFormReturn<CorruptionReportInput>
@@ -25,19 +24,13 @@ export const StepReporterInfo: React.FC<StepProps> = ({ form }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-slate-200 pb-3">
-        <h2 className="text-xl font-bold text-slate-900">
-          Reporter Information
-        </h2>
-      </div>
-
-      {/* Mode Selection Cards - Just the Titles */}
-      <div className="space-y-2 text-left">
-        <label className="block text-xs font-semibold text-slate-700">
-          Reporting Option <span className="text-rose-500">*</span>
+      {/* Question 1: How would you like to report? */}
+      <div className="text-left">
+        <label className="block text-sm font-semibold text-slate-800 mb-3">
+          How would you like to report?
         </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* Anonymous Option */}
           <button
             type="button"
             onClick={() => {
@@ -47,62 +40,76 @@ export const StepReporterInfo: React.FC<StepProps> = ({ form }) => {
               setValue('email', '')
               setValue('physicalAddress', '')
             }}
-            className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between ${reportingMode === 'anonymous'
-                ? 'border-cbe-purple bg-cbe-purple-50/60 ring-2 ring-cbe-purple'
-                : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+            className={`px-4 py-3 rounded-lg border text-left transition cursor-pointer flex items-center gap-3 bg-white ${
+              reportingMode === 'anonymous'
+                ? 'border-[#95298E] ring-1 ring-[#95298E]'
+                : 'border-slate-200 hover:border-slate-300'
+            }`}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-cbe-purple-100 flex items-center justify-center text-cbe-purple shrink-0">
-                <EyeOff className="w-4 h-4" />
-              </div>
-              <span className="font-semibold text-slate-900 text-sm">Remain Anonymous</span>
+            <div
+              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition ${
+                reportingMode === 'anonymous'
+                  ? 'border-[#95298E]'
+                  : 'border-slate-400'
+              }`}
+            >
+              {reportingMode === 'anonymous' && (
+                <div className="w-2 h-2 rounded-full bg-[#95298E]" />
+              )}
             </div>
-            {reportingMode === 'anonymous' && (
-              <span className="text-xs font-semibold text-cbe-purple">Selected</span>
-            )}
+            <span className="text-sm font-medium text-slate-800">Anonymous</span>
           </button>
 
+          {/* Confidential Option */}
           <button
             type="button"
             onClick={() => setValue('reportingMode', 'confidential')}
-            className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between ${reportingMode === 'confidential'
-                ? 'border-cbe-purple bg-cbe-purple-50/60 ring-2 ring-cbe-purple'
-                : 'border-slate-200 bg-white hover:border-slate-300'
-              }`}
+            className={`px-4 py-3 rounded-lg border text-left transition cursor-pointer flex items-center gap-3 bg-white ${
+              reportingMode === 'confidential'
+                ? 'border-[#95298E] ring-1 ring-[#95298E]'
+                : 'border-slate-200 hover:border-slate-300'
+            }`}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-cbe-gold-100 flex items-center justify-center text-cbe-gold-600 shrink-0">
-                <UserCheck className="w-4 h-4" />
-              </div>
-              <span className="font-semibold text-slate-900 text-sm">Treated as Confidential</span>
+            <div
+              className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition ${
+                reportingMode === 'confidential'
+                  ? 'border-[#95298E]'
+                  : 'border-slate-400'
+              }`}
+            >
+              {reportingMode === 'confidential' && (
+                <div className="w-2 h-2 rounded-full bg-[#95298E]" />
+              )}
             </div>
-            {reportingMode === 'confidential' && (
-              <span className="text-xs font-semibold text-cbe-purple">Selected</span>
-            )}
+            <span className="text-sm font-medium text-slate-800">Confidential</span>
           </button>
 
+          {/* Optional Escalation for Dashboard Staff */}
           {isDashboard && (
             <button
               type="button"
               onClick={() => setValue('reportingMode', 'standard')}
-              className={`p-3.5 rounded-xl border text-left transition cursor-pointer flex items-center justify-between ${reportingMode === 'standard'
-                  ? 'border-emerald-500 bg-emerald-50 ring-2 ring-emerald-500'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
-                }`}
+              className={`px-4 py-3 rounded-lg border text-left transition cursor-pointer flex items-center gap-3 bg-white sm:col-span-2 ${
+                reportingMode === 'standard'
+                  ? 'border-[#95298E] ring-1 ring-[#95298E]'
+                  : 'border-slate-200 hover:border-slate-300'
+              }`}
             >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600 shrink-0">
-                  <Building2 className="w-4 h-4" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="font-semibold text-slate-900 text-sm">Escalated / Formal Intake</span>
-                  <span className="text-[10px] text-slate-500 font-medium">President's Office / Branches</span>
-                </div>
+              <div
+                className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 transition ${
+                  reportingMode === 'standard'
+                    ? 'border-[#95298E]'
+                    : 'border-slate-400'
+                }`}
+              >
+                {reportingMode === 'standard' && (
+                  <div className="w-2 h-2 rounded-full bg-[#95298E]" />
+                )}
               </div>
-              {reportingMode === 'standard' && (
-                <span className="text-xs font-semibold text-emerald-600">Selected</span>
-              )}
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-slate-800">Escalated / Formal Intake</span>
+                <span className="text-[11px] text-slate-500 font-normal">President's Office / Branches</span>
+              </div>
             </button>
           )}
         </div>
@@ -111,64 +118,112 @@ export const StepReporterInfo: React.FC<StepProps> = ({ form }) => {
         )}
       </div>
 
-      {/* Relationship */}
+      {/* Divider */}
+      <div className="border-t border-slate-100" />
+
+      {/* "Your information" Section (visible when confidential or standard) */}
+      {reportingMode !== 'anonymous' && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-slate-800 text-left">Your information</h3>
+
+          {/* Full Name */}
+          <div className="space-y-1.5 text-left">
+            <label className="block text-xs font-medium text-slate-700">
+              Full Name
+            </label>
+            <input
+              type="text"
+              placeholder=""
+              {...register('fullName')}
+              className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition"
+            />
+            {errors.fullName && (
+              <p className="text-xs text-rose-500 mt-1">{errors.fullName.message}</p>
+            )}
+          </div>
+
+          {/* Contact Information */}
+          <div className="space-y-2.5 pt-1">
+            <h4 className="text-xs font-semibold text-slate-800 text-left">Contact Information</h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1.5 text-left">
+                <label className="block text-xs font-medium text-slate-600">
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  placeholder=""
+                  {...register('phoneNumber')}
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition"
+                />
+                {errors.phoneNumber && (
+                  <p className="text-xs text-rose-500 mt-1">{errors.phoneNumber.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-1.5 text-left">
+                <label className="block text-xs font-medium text-slate-600">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder=""
+                  {...register('email')}
+                  className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition"
+                />
+                {errors.email && (
+                  <p className="text-xs text-rose-500 mt-1">{errors.email.message}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Physical Address */}
+          <div className="space-y-1.5 text-left pt-1">
+            <label className="block text-xs font-medium text-slate-600">
+              Physical Address
+            </label>
+            <textarea
+              rows={3}
+              placeholder=""
+              {...register('physicalAddress')}
+              className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition resize-none"
+            />
+            {errors.physicalAddress && (
+              <p className="text-xs text-rose-500 mt-1">{errors.physicalAddress.message}</p>
+            )}
+          </div>
+
+          {/* Divider below Physical Address */}
+          <div className="border-t border-slate-100 pt-2" />
+        </div>
+      )}
+
+      {/* Relationship to the Situation */}
       <div className="space-y-1.5 text-left">
-        <label className="block text-xs font-semibold text-slate-700">
-          Relationship to the Situation <span className="text-rose-500">*</span>
+        <label className="block text-xs font-semibold text-slate-800">
+          Relationship to the Situation
         </label>
-        <select
-          {...register('relationship')}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
-        >
-          <option value="">Select relationship</option>
-          {REPORTER_RELATIONSHIPS.map((rel) => (
-            <option key={rel.id} value={rel.label}>
-              {rel.label}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <select
+            {...register('relationship')}
+            className="w-full appearance-none rounded-md border border-slate-200 bg-white pl-8 pr-8 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition cursor-pointer"
+          >
+            <option value="">Select relationship...</option>
+            {REPORTER_RELATIONSHIPS.map((rel) => (
+              <option key={rel.id} value={rel.label}>
+                {rel.label}
+              </option>
+            ))}
+          </select>
+          <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-slate-400">
+            <ChevronDown className="w-4 h-4" />
+          </div>
+        </div>
         {errors.relationship && (
           <p className="text-xs text-rose-500 mt-1">{errors.relationship.message}</p>
         )}
       </div>
-
-      {/* Optional Contact Fields (Visible if Confidential) */}
-      {reportingMode === 'confidential' && (
-        <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Full Name (Optional)"
-              placeholder="Your name"
-              error={errors.fullName?.message}
-              {...register('fullName')}
-            />
-
-            <Input
-              label="Phone Number (Optional)"
-              placeholder="Your phone number"
-              error={errors.phoneNumber?.message}
-              {...register('phoneNumber')}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Input
-              label="Email (Optional)"
-              type="email"
-              placeholder="Your email address"
-              error={errors.email?.message}
-              {...register('email')}
-            />
-
-            <Input
-              label="Physical Address (Optional)"
-              placeholder="City, sub-city, or address"
-              error={errors.physicalAddress?.message}
-              {...register('physicalAddress')}
-            />
-          </div>
-        </div>
-      )}
     </div>
   )
 }

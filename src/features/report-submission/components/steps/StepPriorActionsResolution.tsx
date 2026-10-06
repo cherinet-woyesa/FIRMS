@@ -1,5 +1,6 @@
 import React from 'react'
 import type { UseFormReturn } from 'react-hook-form'
+import { ChevronDown, ShieldCheck } from 'lucide-react'
 import type { CorruptionReportInput } from '../../types/report.types'
 import { RESOLUTIONS_SOUGHT } from '@/constants/categories'
 
@@ -15,97 +16,111 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="border-b border-slate-200 pb-3">
-        <h2 className="text-xl font-bold text-slate-900">
-          Previous Actions and Resolution
-        </h2>
-
-      </div>
-
-      {/* Prior Reports */}
+      {/* 1. Prior Reports */}
       <div className="space-y-1.5 text-left">
-        <label className="block text-xs font-semibold text-slate-700">
+        <label className="block text-sm font-semibold text-slate-800">
           Prior Reports <span className="text-rose-500">*</span>
         </label>
         <textarea
           rows={3}
-          placeholder="Have you reported this to anyone else? (e.g., Supervisor, HR, Police, another agency) or enter None..."
+          placeholder="Have you reported this matter internally or to any other authority (e.g. Branch Supervisor, HR, Police, Ethics Commission)? If not, please enter 'None'..."
           {...register('priorReports')}
-          className="w-full rounded-lg border border-slate-300 px-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
+          className="w-full rounded-md border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition resize-none"
         />
         {errors.priorReports && (
           <p className="text-xs text-rose-500 mt-1">{errors.priorReports.message}</p>
         )}
       </div>
 
-      {/* Resolution Sought */}
-      <div className="space-y-1.5 text-left">
-        <label className="block text-xs font-semibold text-slate-700">
-          Resolution Sought <span className="text-rose-500">*</span>
-        </label>
-        <select
-          {...register('resolutionSought')}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
-        >
-          <option value="">Select resolution sought</option>
-          {RESOLUTIONS_SOUGHT.map((res) => (
-            <option key={res.id} value={res.label}>
-              {res.label}
-            </option>
-          ))}
-        </select>
-        {errors.resolutionSought && (
-          <p className="text-xs text-rose-500 mt-1">{errors.resolutionSought.message}</p>
-        )}
+      {/* Horizontal Divider */}
+      <div className="border-t border-slate-100" />
+
+      {/* 2. Resolution Sought & Oversight Routing */}
+      <div className="space-y-4 text-left">
+        <h3 className="text-sm font-semibold text-slate-800">
+          Resolution Sought &amp; Intake Routing
+        </h3>
+
+        {/* Resolution Sought Dropdown */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-slate-600">
+            Resolution or Action Sought <span className="text-rose-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              {...register('resolutionSought')}
+              className="w-full appearance-none rounded-md border border-slate-200 bg-white pl-3.5 pr-8 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition cursor-pointer"
+            >
+              <option value="">Select the primary outcome or remedy sought...</option>
+              {RESOLUTIONS_SOUGHT.map((res) => (
+                <option key={res.id} value={res.label}>
+                  {res.label}
+                </option>
+              ))}
+            </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+          {errors.resolutionSought && (
+            <p className="text-xs text-rose-500 mt-1">{errors.resolutionSought.message}</p>
+          )}
+        </div>
+
+        {/* Report Made Against (Routing) */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-medium text-slate-600">
+            Report Target Level (Determines Direct Confidential Routing) <span className="text-rose-500">*</span>
+          </label>
+          <div className="relative">
+            <select
+              {...register('reportRecipient')}
+              className="w-full appearance-none rounded-md border border-slate-200 bg-white pl-3.5 pr-8 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition cursor-pointer"
+            >
+              <option value="Risk Management & Compliance Division">
+                Standard Employee / Branch / Department (Routes to Ethics &amp; Compliance Division)
+              </option>
+              <option value="President">
+                Risk Management &amp; Compliance Official (Bypasses Division &rarr; Routes to President's Office)
+              </option>
+              <option value="Board Audit Committee">
+                Executive Leadership / President (Bypasses Management &rarr; Routes to Board Audit Committee)
+              </option>
+            </select>
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+              <ChevronDown className="w-4 h-4" />
+            </div>
+          </div>
+          {errors.reportRecipient && (
+            <p className="text-xs text-rose-500 mt-1">{errors.reportRecipient.message}</p>
+          )}
+        </div>
       </div>
 
-      {/* Report Recipient */}
-      <div className="space-y-1.5 text-left">
-        <label className="block text-xs font-semibold text-slate-700">
-          Report Made Against (Determines Routing) <span className="text-rose-500">*</span>
-        </label>
-        <select
-          {...register('reportRecipient')}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-cbe-purple"
-        >
-          {/* If against a Standard employee, it routes to Risk Management & Compliance */}
-          <option value="Risk Management & Compliance Division">
-            Standard Employee / Other Division
-          </option>
-          
-          {/* If against Risk Management & Compliance, it bypasses them and routes to President */}
-          <option value="President">
-            Risk Management &amp; Compliance Division
-          </option>
-          
-          {/* If against President, it routes to the Board Audit Committee */}
-          <option value="Board Audit Committee">
-            President
-          </option>
-        </select>
+      {/* Horizontal Divider */}
+      <div className="border-t border-slate-100" />
 
-        {errors.reportRecipient && (
-          <p className="text-xs text-rose-500 mt-1">{errors.reportRecipient.message}</p>
-        )}
-      </div>
-
-      {/* Declaration checkbox */}
-      <div className="pt-2">
-        <label className="flex items-start gap-3 cursor-pointer">
+      {/* 3. Whistleblower Good-Faith Declaration */}
+      <div className="p-4 rounded-lg bg-slate-50/80 border border-slate-200/80 text-left space-y-2">
+        <div className="flex items-center gap-2 text-cbe-purple">
+          <ShieldCheck className="w-4 h-4" />
+          <span className="text-xs font-semibold uppercase tracking-wider">Good-Faith Declaration</span>
+        </div>
+        <label className="flex items-start gap-3 cursor-pointer pt-1">
           <input
             type="checkbox"
             {...register('confirmationAcknowledged')}
-            className="w-4 h-4 mt-0.5 text-cbe-purple rounded border-slate-300 focus:ring-cbe-purple cursor-pointer"
+            className="w-4 h-4 mt-0.5 text-cbe-purple rounded border-slate-300 focus:ring-cbe-purple cursor-pointer accent-[#95298E]"
           />
-          <span className="text-xs text-slate-700 leading-relaxed">
-            I confirm that this report is submitted in good faith and the information provided is true and accurate to the best of my knowledge.
+          <span className="text-xs text-slate-700 leading-relaxed font-medium">
+            I confirm that this report is submitted in good faith and that all information, narratives, and claims provided are true, accurate, and unmanipulated to the best of my knowledge.
           </span>
         </label>
         {errors.confirmationAcknowledged && (
-          <p className="text-xs text-rose-500 font-medium mt-1">{errors.confirmationAcknowledged.message}</p>
+          <p className="text-xs text-rose-500 font-medium pl-7">{errors.confirmationAcknowledged.message}</p>
         )}
       </div>
     </div>
   )
 }
+

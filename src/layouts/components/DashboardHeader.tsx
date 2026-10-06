@@ -1,5 +1,6 @@
 import React from 'react'
 import { Menu } from 'lucide-react'
+import { NotificationDropdown } from '@/components/ui/NotificationDropdown'
 
 interface Props {
   onToggleMobileMenu?: () => void
@@ -33,7 +34,8 @@ export const DashboardHeader: React.FC<Props> = ({ onToggleMobileMenu }) => {
       </div>
 
       {/* Right Session Meta & Controls */}
-      <div className="flex items-center gap-3 text-xs">
+      <div className="flex items-center gap-3 sm:gap-4 text-xs">
+        <NotificationDropdown />
         <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200 shrink-0">
           Officer Portal
         </span>
