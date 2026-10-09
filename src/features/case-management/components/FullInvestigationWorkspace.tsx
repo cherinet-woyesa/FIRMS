@@ -12,6 +12,8 @@ import type {
   DisciplinaryActionItem,
   SystemicMeasureItem,
 } from '../types/investigation.types'
+import { toast } from 'sonner'
+import { executeWorkflowTransition } from '../api/workflowExecutionApi'
 import { FinalInvestigationReportView } from './FinalInvestigationReportView'
 import { PlanningAuthorizationStep } from './full-investigation/PlanningAuthorizationStep'
 import { EvidenceForensicsStep } from './full-investigation/EvidenceForensicsStep'
@@ -19,6 +21,7 @@ import { InterviewsStep } from './full-investigation/InterviewsStep'
 import { ClosureStep } from './full-investigation/ClosureStep'
 
 interface Props {
+  caseId?: string
   investigation: FullInvestigationState
   onUpdateInvestigation: (updated: FullInvestigationState) => void
   onSave: () => void
@@ -35,6 +38,7 @@ const STEPS = [
 ]
 
 export const FullInvestigationWorkspace: React.FC<Props> = ({
+  caseId,
   investigation,
   onUpdateInvestigation,
   onSave,
@@ -242,7 +246,7 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
     }))
   }
 
-  const handleFinalizeCase = () => {
+  const handleFinalizeCase = async () => {
     updateState((prev) => ({
       ...prev,
       closure: {
@@ -252,7 +256,25 @@ export const FullInvestigationWorkspace: React.FC<Props> = ({
       },
     }))
     onSave()
-    setTimeout(() => navigate(ROUTES.REPORT_REPOSITORY), 500)
+
+    if (caseId) {
+      try {
+        const res = await executeWorkflowTransition(caseId, {
+          actionCode: 'CLOSE_CASE',
+          comment: 'Case closed formally post-investigation resolution.',
+          assignedUserId: user?.userId,
+        })
+        if (res.success) {
+          toast.success('Case closed formally in workflow.')
+        } else if (res.error) {
+          toast.error(res.error)
+        }
+      } catch (err: any) {
+        toast.error(err?.message || 'Failed to close case in workflow.')
+      }
+    }
+
+    setTimeout(() => navigate(ROUTES.REPORT_REPOSITORY), 600)
   }
 
   return (

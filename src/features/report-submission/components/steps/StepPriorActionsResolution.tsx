@@ -1,18 +1,85 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { ChevronDown, ShieldCheck } from 'lucide-react'
+import { ChevronDown, ShieldCheck, Loader2, ShieldAlert } from 'lucide-react'
 import type { CorruptionReportInput } from '../../types/report.types'
 import { RESOLUTIONS_SOUGHT } from '@/constants/categories'
+import {
+  fetchAllegationSubjectTypes,
+  type AllegationSubjectTypeLookup,
+} from '../../api/lookupsApi'
 
 interface StepProps {
   form: UseFormReturn<CorruptionReportInput>
 }
 
+const DEFAULT_SUBJECT_TYPES: AllegationSubjectTypeLookup[] = [
+  {
+    id: 1,
+    name: 'Other',
+    label: 'Standard Employee / Branch / Department',
+    routingDescription: 'Standard intake handling (Routes to Ethics & Compliance Division / RMCD)',
+    targetRecipient: 'Risk Management & Compliance Division',
+  },
+  {
+    id: 2,
+    name: 'RMCDEmployee',
+    label: 'Risk Management & Compliance Official',
+    routingDescription: 'Bypasses Division (Directly routes to President\'s Office)',
+    targetRecipient: 'President',
+  },
+  {
+    id: 3,
+    name: 'President',
+    label: 'Executive Leadership / President',
+    routingDescription: 'Bypasses Management (Directly routes to Board Audit Committee)',
+    targetRecipient: 'Board Audit Committee',
+  },
+]
+
 export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
   const {
     register,
+    watch,
+    setValue,
     formState: { errors },
   } = form
+
+  const [subjectTypes, setSubjectTypes] = useState<AllegationSubjectTypeLookup[]>(DEFAULT_SUBJECT_TYPES)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const currentSubjectType = watch('subjectType') ?? 1
+
+  useEffect(() => {
+    let isMounted = true
+    async function loadSubjectTypes() {
+      try {
+        setIsLoading(true)
+        const res = await fetchAllegationSubjectTypes()
+        if (isMounted && res && res.length > 0) {
+          setSubjectTypes(res)
+        }
+      } catch (err) {
+        console.error('Failed to load allegation subject types:', err)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+    loadSubjectTypes()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  // Find currently selected item to show routing preview
+  const selectedSubject = subjectTypes.find((s) => s.id === Number(currentSubjectType)) || subjectTypes[0]
+
+  const handleSubjectTypeChange = (subjectId: number) => {
+    const selected = subjectTypes.find((s) => s.id === subjectId)
+    if (selected) {
+      setValue('subjectType', selected.id, { shouldValidate: true })
+      setValue('reportRecipient', selected.targetRecipient, { shouldValidate: true })
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -67,30 +134,39 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
           )}
         </div>
 
-        {/* Report Made Against (Routing) */}
+        {/* Report Made Against (Routing) - Dynamically loaded from Backend */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-medium text-slate-600">
-            Report Target Level (Determines Direct Confidential Routing) <span className="text-rose-500">*</span>
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-medium text-slate-600">
+              Report Target Level (Determines Direct Confidential Routing) <span className="text-rose-500">*</span>
+            </label>
+            {isLoading && (
+              <span className="text-[11px] font-medium text-slate-400 flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin text-cbe-purple" />
+                Loading routing targets...
+              </span>
+            )}
+          </div>
           <div className="relative">
             <select
-              {...register('reportRecipient')}
+              value={currentSubjectType}
+              onChange={(e) => handleSubjectTypeChange(Number(e.target.value))}
               className="w-full appearance-none rounded-md border border-slate-200 bg-white pl-3.5 pr-8 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#95298E]/20 focus:border-[#95298E] transition cursor-pointer"
             >
-              <option value="Risk Management & Compliance Division">
-                Standard Employee / Branch / Department (Routes to Ethics &amp; Compliance Division)
-              </option>
-              <option value="President">
-                Risk Management &amp; Compliance Official (Bypasses Division &rarr; Routes to President's Office)
-              </option>
-              <option value="Board Audit Committee">
-                Executive Leadership / President (Bypasses Management &rarr; Routes to Board Audit Committee)
-              </option>
+              {subjectTypes.map((st) => (
+                <option key={st.id} value={st.id}>
+                  {st.label || st.name} — {st.routingDescription}
+                </option>
+              ))}
             </select>
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
               <ChevronDown className="w-4 h-4" />
             </div>
           </div>
+
+          {/* Confidential Routing Assurance Badge */}
+
+
           {errors.reportRecipient && (
             <p className="text-xs text-rose-500 mt-1">{errors.reportRecipient.message}</p>
           )}

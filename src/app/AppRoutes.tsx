@@ -10,6 +10,7 @@ import { ReportWizard } from '@/features/report-submission'
 import { CaseTracker } from '@/features/case-tracking'
 import { LoginForm, ProtectedRoute } from '@/features/auth'
 import { CaseManagementPage, InvestigationWorkspace } from '@/features/case-management'
+import { CaseDetailPage } from '@/features/case-management/pages/CaseDetailPage'
 import { TeamCreationPage } from '@/features/team-management'
 import { ReportRepositoryPage } from '@/features/report-repository'
 import UserManagementPage from '@/features/user-management/pages/UserManagementPage'
@@ -39,6 +40,7 @@ export const AppRoutes: React.FC = () => {
           <Route path={ROUTES.DASHBOARD} element={<CaseManagementPage />} />
           <Route path={ROUTES.MANUAL_INTAKE} element={<ReportWizard />} />
           <Route path={ROUTES.CASES} element={<CaseManagementPage />} />
+          <Route path="/dashboard/cases/:id/details" element={<CaseDetailPage />} />
           <Route path="/dashboard/cases/:id" element={<InvestigationWorkspace />} />
           <Route path={ROUTES.TEAM_CREATION} element={<TeamCreationPage />} />
           <Route path={ROUTES.REPORT_REPOSITORY} element={<ReportRepositoryPage />} />

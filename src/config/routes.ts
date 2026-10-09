@@ -16,6 +16,7 @@ export const ROUTES = {
   MANUAL_INTAKE: '/dashboard/intake',
   CASES: '/dashboard/cases',
   CASE_DETAIL: (id: string) => `/dashboard/cases/${id}`,
+  CASE_INTAKE_DETAILS: (id: string) => `/dashboard/cases/${id}/details`,
   REPORT_REPOSITORY: '/dashboard/repository',
   USERS: '/dashboard/users',
   ACCESS_MANAGEMENT: '/dashboard/access',

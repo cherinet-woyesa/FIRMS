@@ -30,6 +30,9 @@ export async function submitWhistleblowerReport(
     incidentLocation: payload.incidentLocation,
     howBecameAware: payload.howAware,
     whyBelievedCorrupt: payload.whyCorrupt,
+    priorReports: payload.priorReports,
+    resolutionSought: payload.resolutionSought,
+    subjectType: payload.subjectType ?? 1,
   }
 
   try {

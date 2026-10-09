@@ -47,6 +47,7 @@ export const step5Schema = z.object({
   resolutionSought: z.string().min(1, 'Please select or describe resolution sought'),
   customResolutionDetails: z.string().optional(),
   reportRecipient: z.string().min(1, 'Report recipient is required'),
+  subjectType: z.number().optional(),
   confirmationAcknowledged: z.boolean().refine((val) => val === true, {
     message: 'You must confirm the disclosure is made in good faith',
   }),
@@ -92,6 +93,7 @@ export const corruptionReportSchema = z.object({
   resolutionSought: z.string().min(1, 'Please select or describe resolution sought'),
   customResolutionDetails: z.string().optional(),
   reportRecipient: z.string().min(1, 'Report recipient is required'),
+  subjectType: z.number().optional(),
   confirmationAcknowledged: z.boolean().refine((val) => val === true, {
     message: 'You must confirm the disclosure is made in good faith',
   }),

@@ -3,14 +3,18 @@ import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '@/store/store'
 import { useQuery } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   ArrowLeft,
   ArrowUp,
   Save,
   Check,
   FileText,
+  GitBranch,
+  Zap,
 } from 'lucide-react'
-import { fetchCaseById, updateCaseTriage, updateCaseFullInvestigation, handoverCase } from '../api/getCases'
+import { fetchCaseById, fetchCaseAssessment, updateCaseTriage, updateCaseFullInvestigation, handoverCase } from '../api/getCases'
+import { getAvailableWorkflowActions, executeWorkflowTransition } from '../api/workflowExecutionApi'
 import { FullInvestigationWorkspace } from './FullInvestigationWorkspace'
 import { TriageStep1Secure } from './triage/TriageStep1Secure'
 import { TriageStep2Review } from './triage/TriageStep2Review'
@@ -32,6 +36,18 @@ export const InvestigationWorkspace: React.FC = () => {
   const { data: caseData, isLoading } = useQuery({
     queryKey: ['case-detail', caseId],
     queryFn: () => fetchCaseById(caseId),
+  })
+
+  const { data: assessmentData } = useQuery({
+    queryKey: ['case-assessment', caseId],
+    queryFn: () => fetchCaseAssessment(caseId),
+    enabled: !!caseId,
+  })
+
+  const { data: availableActions = [], refetch: refetchActions } = useQuery({
+    queryKey: ['case-workflow-actions', caseId],
+    queryFn: () => getAvailableWorkflowActions(caseId),
+    enabled: !!caseId,
   })
 
   const { user } = useSelector((state: RootState) => state.auth)
@@ -61,6 +77,39 @@ export const InvestigationWorkspace: React.FC = () => {
   const [fullInvestigationState, setFullInvestigationState] = useState<FullInvestigationState | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showReportDrawer, setShowReportDrawer] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+
+  const handleExecuteTransition = async (
+    actionCode: string,
+    comment?: string,
+    onSuccess?: () => void
+  ) => {
+    setIsTransitioning(true)
+    try {
+      const res = await executeWorkflowTransition(caseId, {
+        actionCode,
+        comment: comment || `Action ${actionCode} executed from workspace.`,
+        assignedUserId: user?.userId,
+      })
+
+      if (res.success) {
+        toast.success(res.actionName ? `${res.actionName} executed successfully.` : 'Workflow updated.')
+        await refetchActions()
+        if (onSuccess) onSuccess()
+      } else {
+        if (res.error) {
+          toast.error(res.error)
+        }
+        // Still allow step progression in the UI
+        if (onSuccess) onSuccess()
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'Workflow transition failed.')
+      if (onSuccess) onSuccess()
+    } finally {
+      setIsTransitioning(false)
+    }
+  }
 
   useEffect(() => {
     if (caseData) {
@@ -69,21 +118,25 @@ export const InvestigationWorkspace: React.FC = () => {
         legalHoldInitiated: false,
         noConflictSigned: false,
         isWithinJurisdiction: false,
-        specificityRating: 'Medium',
+        specificityRating: (assessmentData?.specificityRating as any) || 'Medium',
         corroborationRating: 'Medium',
-        severityRating: 'Medium',
+        severityRating: assessmentData?.severityAssessment?.includes('High')
+          ? 'High'
+          : assessmentData?.severityAssessment?.includes('Low')
+          ? 'Low'
+          : 'Medium',
         orgChartReviewed: false,
         osintReviewed: false,
         internalRecordsReviewed: false,
-        predicationDetermination: 'Insufficient',
-        recommendedAction: 'Full Investigation',
+        predicationDetermination: (assessmentData?.predicationDetermination as any) || 'Insufficient',
+        recommendedAction: (assessmentData?.recommendedAction as any) || 'Full Investigation',
       })
 
       setReportState(caseData.preliminaryAssessmentReport || {
         caseId: caseData.referenceKey,
         dateReportReceipt: caseData.submittedAt,
-        investigatorTeamAssigned: '',
-        dateAssessmentCompletion: '',
+        investigatorTeamAssigned: assessmentData?.assignedInvestigatorName || '',
+        dateAssessmentCompletion: assessmentData?.dateOfAssessmentCompletion || '',
         sourceReportingChannel: caseData.reportingMode || '',
         allegedSubjects: '',
         allegedOrganizationUnit: caseData.targetDepartment || '',
@@ -91,15 +144,15 @@ export const InvestigationWorkspace: React.FC = () => {
         allegedPeriodOfIncident: '',
         allegationSummary: caseData.summary,
         applicableLawPolicy: '',
-        specificityAndDetail: '',
-        evidenceProvided: '',
-        initialReviewFindings: '',
-        credibilityAssessment: '',
-        severityAssessment: '',
-        predicationDetermination: 'Insufficient',
-        recommendedAction: 'Full Investigation',
-        recommendedActionJustification: '',
-        nextStepsInterimMeasures: '',
+        specificityAndDetail: assessmentData?.specificityRating || '',
+        evidenceProvided: assessmentData?.evidenceProvidedSummary || '',
+        initialReviewFindings: assessmentData?.initialReviewFindings || '',
+        credibilityAssessment: assessmentData?.credibilityAssessment || '',
+        severityAssessment: assessmentData?.severityAssessment || '',
+        predicationDetermination: (assessmentData?.predicationDetermination as any) || 'Insufficient',
+        recommendedAction: (assessmentData?.recommendedAction as any) || 'Full Investigation',
+        recommendedActionJustification: assessmentData?.recommendedActionJustification || '',
+        nextStepsInterimMeasures: assessmentData?.nextSteps || '',
       })
 
       if (caseData.fullInvestigation) {
@@ -228,6 +281,7 @@ export const InvestigationWorkspace: React.FC = () => {
   const handleHandover = async () => {
     await handleSaveTriage()
     await handoverCase(caseId)
+    await handleExecuteTransition('START_TRIAGE', 'Handed over to investigation team.')
     navigate(ROUTES.CASES)
   }
 
@@ -341,7 +395,7 @@ export const InvestigationWorkspace: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowReportDrawer(true)}
+            onClick={() => navigate(ROUTES.CASE_INTAKE_DETAILS(caseId))}
             className="text-xs h-8 px-2.5 flex items-center gap-1.5 border-slate-200 text-slate-700 hover:bg-slate-50"
             title="View original whistleblower intake"
           >
@@ -362,6 +416,51 @@ export const InvestigationWorkspace: React.FC = () => {
         </div>
       </div>
 
+      {/* 2. Backend Workflow Transitions Bar */}
+      {availableActions.length > 0 && (
+        <div className="bg-gradient-to-r from-purple-50/80 via-white to-amber-50/60 border border-purple-200/80 rounded-2xl p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-lg bg-cbe-purple text-white flex items-center justify-center shrink-0">
+              <GitBranch className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-900">
+                  Current Stage: {availableActions[0]?.fromStageName || caseData.status}
+                </span>
+                <span className="text-[10px] font-semibold text-cbe-purple bg-purple-100/70 px-2 py-0.5 rounded-full">
+                  {availableActions.length} {availableActions.length === 1 ? 'Action' : 'Actions'} Available
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500">
+                Backend workflow state transitions permitted for your role:
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {availableActions.map((action) => (
+              <Button
+                key={action.transitionId || action.actionCode}
+                size="sm"
+                disabled={isTransitioning}
+                onClick={() =>
+                  handleExecuteTransition(
+                    action.actionCode,
+                    `Transition ${action.actionName} initiated by ${user?.userName || 'auditor'}.`
+                  )
+                }
+                className="text-xs h-7 px-3 bg-white hover:bg-cbe-purple hover:text-white text-slate-800 border border-slate-300 font-semibold shadow-2xs transition cursor-pointer"
+                title={action.description || action.actionName}
+              >
+                <Zap className="w-3 h-3 text-cbe-gold shrink-0 mr-1" />
+                <span>{action.actionName}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* PHASE 1: TRIAGE WORKFLOW */}
       {currentPhase === 'triage' && (
         <div className="space-y-4">
@@ -378,7 +477,9 @@ export const InvestigationWorkspace: React.FC = () => {
               isInvestigator={isInvestigator}
               isEditable={isEditable}
               onHandover={handleHandover}
-              onNext={() => setActiveTriageStep(2)}
+              onNext={() =>
+                handleExecuteTransition('START_TRIAGE', 'Triage commenced.', () => setActiveTriageStep(2))
+              }
             />
           )}
 
@@ -388,7 +489,13 @@ export const InvestigationWorkspace: React.FC = () => {
               triageState={triageState}
               onChangeTriage={(updater) => setTriageState((prev) => (prev ? updater(prev) : prev))}
               onUpdateReportField={handleUpdateReportField}
-              onNext={() => setActiveTriageStep(3)}
+              onNext={() =>
+                handleExecuteTransition(
+                  'PROCEED_FACT_CHECKING',
+                  'Proceeding to initial fact-checking.',
+                  () => setActiveTriageStep(3)
+                )
+              }
             />
           )}
 
@@ -399,7 +506,13 @@ export const InvestigationWorkspace: React.FC = () => {
               onChangeTriage={(updater) => setTriageState((prev) => (prev ? updater(prev) : prev))}
               onUpdateReportField={handleUpdateReportField}
               onPrev={() => setActiveTriageStep(2)}
-              onNext={() => setActiveTriageStep(4)}
+              onNext={() =>
+                handleExecuteTransition(
+                  'SUBMIT_PREDICATION',
+                  'Preliminary fact checking submitted for predication decision.',
+                  () => setActiveTriageStep(4)
+                )
+              }
             />
           )}
 
@@ -411,11 +524,21 @@ export const InvestigationWorkspace: React.FC = () => {
               isEditable={isEditable}
               canInitiateInvestigation={canInitiateInvestigation}
               isInvestigator={isInvestigator}
-              onEscalateToFullInvestigation={handleEscalateToFullInvestigation}
+              onEscalateToFullInvestigation={() =>
+                handleExecuteTransition(
+                  'FULL_INVESTIGATION',
+                  reportState.recommendedActionJustification || 'Predication sufficient. Escalating to Full Investigation.',
+                  () => handleEscalateToFullInvestigation()
+                )
+              }
               onSaveTriage={handleSaveTriage}
               onSendToManager={async () => {
                 await handleSaveTriage()
-                navigate(ROUTES.CASES)
+                await handleExecuteTransition(
+                  'SUBMIT_PREDICATION',
+                  'Assessment report sent to Manager for review.',
+                  () => navigate(ROUTES.CASES)
+                )
               }}
               onPrev={() => setActiveTriageStep(3)}
             />
@@ -427,6 +550,7 @@ export const InvestigationWorkspace: React.FC = () => {
       {currentPhase === 'full-investigation' && fullInvestigationState && (
         <div className="space-y-4">
           <FullInvestigationWorkspace
+            caseId={caseId}
             investigation={fullInvestigationState}
             onUpdateInvestigation={setFullInvestigationState}
             onSave={handleSaveFullInvestigation}
