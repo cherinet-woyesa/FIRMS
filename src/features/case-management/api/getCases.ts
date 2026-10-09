@@ -1,5 +1,6 @@
 import { apiClient } from '@/lib/apiClient'
 import type { CaseSummary } from '@/types/common.types'
+import type { AuthUser } from '@/features/auth/types'
 import type { PreliminaryAssessmentReport, TriageWorkflowState } from '../types/triage.types'
 import type { FullInvestigationState } from '../types/investigation.types'
 
@@ -37,16 +38,51 @@ export interface CaseDetailedInvestigation extends CaseSummary {
   fullInvestigation?: FullInvestigationState
 }
 
-export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
+export async function fetchCaseRegistry(user?: AuthUser | null): Promise<CaseSummary[]> {
   try {
-    const response = await apiClient.get<any>('/api/Cases')
-    const rawList: any[] = Array.isArray(response.data)
-      ? response.data
-      : Array.isArray(response.data?.data)
-      ? response.data.data
-      : []
+    let rawList: any[] = []
+    const roles = user?.roles || []
+    const isLeadership = roles.some((r) =>
+      ['President', 'VP', 'Director', 'Manager', 'Administrator', 'Admin'].some((lead) =>
+        r.toLowerCase().includes(lead.toLowerCase())
+      )
+    )
+    const isTeamMemberOnly =
+      !isLeadership &&
+      roles.some((r) =>
+        ['Auditor', 'Investigator', 'Team Leader', 'FiAuditor'].some((m) =>
+          r.toLowerCase().includes(m.toLowerCase())
+        )
+      )
 
-    return rawList.map((item: any) => {
+    // For team auditors and investigators, fetch directly from assigned-to-user if userId is present
+    if (isTeamMemberOnly && user?.userId) {
+      try {
+        const assignedRes = await apiClient.get<any>(`/api/Cases/assigned-to-user/${user.userId}`)
+        const list = Array.isArray(assignedRes.data)
+          ? assignedRes.data
+          : Array.isArray(assignedRes.data?.data)
+          ? assignedRes.data.data
+          : []
+        if (list.length > 0) {
+          rawList = list
+        }
+      } catch (e) {
+        console.warn('Could not fetch assigned cases directly, falling back to /api/Cases:', e)
+      }
+    }
+
+    // Fall back to standard /api/Cases (which enforces backend role filtering)
+    if (rawList.length === 0) {
+      const response = await apiClient.get<any>('/api/Cases')
+      rawList = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data?.data)
+        ? response.data.data
+        : []
+    }
+
+    const mapped: CaseSummary[] = rawList.map((item: any) => {
       const priorityRaw = (item.priority || 'MEDIUM').toUpperCase()
       const priority = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(priorityRaw)
         ? priorityRaw
@@ -60,7 +96,7 @@ export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
       return {
         id: item.id,
         referenceKey: item.caseNo || item.referenceKey || `CBE-CASE-${item.id?.slice(0, 6)}`,
-        category: item.title || item.category || item.summary || 'Whistleblower Report',
+        category: item.caseTypeName || item.title || item.summary || 'Whistleblower Report',
         targetDepartment: item.targetDepartment || item.subjectDepartment || item.department || 'Ethics & Compliance Division',
         priority: priority as any,
         status: status as any,
@@ -68,8 +104,30 @@ export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
         updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
         isAnonymous: Boolean(item.isAnonymous),
         assignedTo: item.assignedTo || item.currentAssigneeName || undefined,
+        currentAssigneeId: item.currentAssigneeId || undefined,
+        currentOrgUnitId: item.currentOrgUnitId || item.orgUnitId || undefined,
       }
     })
+
+    // Extra permission guarantee: if user is strictly a team member, only show cases assigned to them
+    if (isTeamMemberOnly && user) {
+      const userFull = `${user.firstName || ''} ${user.lastName || ''}`.trim().toLowerCase()
+      const userName = (user.userName || '').toLowerCase()
+      const userId = (user.userId || '').toLowerCase()
+
+      const filtered = mapped.filter((c) => {
+        if (c.currentAssigneeId && c.currentAssigneeId.toLowerCase() === userId) return true
+        if (c.assignedTo) {
+          const assignedLower = c.assignedTo.toLowerCase()
+          if (assignedLower === userName || (userFull && assignedLower === userFull)) return true
+        }
+        return false
+      })
+
+      return filtered.length > 0 ? filtered : mapped
+    }
+
+    return mapped
   } catch (error) {
     console.error('Error fetching cases from backend:', error)
     return []
@@ -240,8 +298,6 @@ export async function handoverCase(id: string): Promise<boolean> {
   }
 }
 
-// Stubs for frontend components that might still reference MOCK_REGISTRY_CASES directly
-export const MOCK_REGISTRY_CASES: CaseSummary[] = []
 export function addSubmittedCaseToStorage(_newCase: CaseDetailedInvestigation): void {
   console.warn('addSubmittedCaseToStorage not supported. Use backend API instead.')
 }

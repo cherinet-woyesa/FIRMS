@@ -29,6 +29,8 @@ export interface CaseSummary {
   updatedAt: string
   isAnonymous: boolean
   assignedTo?: string
+  currentAssigneeId?: string
+  currentOrgUnitId?: string
 }
 
 export interface CaseDetail extends CaseSummary {
