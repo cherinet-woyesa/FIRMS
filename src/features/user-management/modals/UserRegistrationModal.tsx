@@ -2,13 +2,12 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { X, Building2, Globe, Search, UserCircle2, Loader2, Check } from 'lucide-react';
+import { X, Building2, Globe, Search, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useSearchAdUser } from '../api/searchAdUser';
 import { useRegisterAdUser } from '../api/registerAdUser';
 import { useRegisterExternalUser } from '../api/registerExternalUser';
-import { RegisterExternalRequest } from '../types';
 
 interface UserRegistrationModalProps {
   isOpen: boolean;
@@ -166,10 +165,10 @@ export const UserRegistrationModal: React.FC<UserRegistrationModalProps> = ({ is
                   <div className="p-5 bg-brand-50/50 border border-brand-100 rounded-xl">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-12 h-12 bg-brand-700/10 text-brand-700 rounded-full flex items-center justify-center font-bold text-lg">
-                        {adUser.firstName.charAt(0)}{adUser.lastName.charAt(0)}
+                        {(adUser.firstName?.charAt(0) || adUser.userName?.charAt(0) || 'U')}{(adUser.lastName?.charAt(0) || '')}
                       </div>
                       <div>
-                        <h4 className="text-gray-900 font-semibold">{adUser.firstName} {adUser.lastName}</h4>
+                        <h4 className="text-gray-900 font-semibold">{[adUser.firstName, adUser.lastName].filter(Boolean).join(' ') || adUser.userName}</h4>
                         <p className="text-sm text-gray-500">{adUser.email}</p>
                       </div>
                     </div>

@@ -39,7 +39,7 @@ export const MapActionModal: React.FC<Props> = ({ isOpen, onClose, fromStage, al
         reset,
         formState: { errors }
     } = useForm<FormData>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(schema) as any,
         defaultValues: {
             requiresComment: false,
             requiresApproval: false,
@@ -83,7 +83,7 @@ export const MapActionModal: React.FC<Props> = ({ isOpen, onClose, fromStage, al
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto">
+                <form onSubmit={handleSubmit(onSubmit as any)} className="p-6 overflow-y-auto">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="col-span-2">
                             <label className="block text-sm font-bold text-gray-700 mb-1">Destination Stage</label>

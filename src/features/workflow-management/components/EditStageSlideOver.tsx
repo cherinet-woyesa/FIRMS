@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { X, Loader2, Workflow, Shield, Settings2 } from 'lucide-react';
-import { WorkflowStage, WorkflowVersion } from '../types';
+import { WorkflowStage } from '../types';
 import { useUpdateWorkflowStage } from '../api';
 
 const editStageSchema = z.object({

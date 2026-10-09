@@ -11,6 +11,7 @@ export interface AuthUser {
     firstName: string;
     lastName: string;
     roles: string[];
+    permissions?: string[];
 }
 
 export interface LoginResponse {

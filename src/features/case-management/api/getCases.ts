@@ -39,11 +39,37 @@ export interface CaseDetailedInvestigation extends CaseSummary {
 
 export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
   try {
-    const response = await apiClient.get<{ success: boolean; data: CaseSummary[] }>('/api/Cases')
-    if (response.data.success) {
-      return response.data.data
-    }
-    return []
+    const response = await apiClient.get<any>('/api/Cases')
+    const rawList: any[] = Array.isArray(response.data)
+      ? response.data
+      : Array.isArray(response.data?.data)
+      ? response.data.data
+      : []
+
+    return rawList.map((item: any) => {
+      const priorityRaw = (item.priority || 'MEDIUM').toUpperCase()
+      const priority = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(priorityRaw)
+        ? priorityRaw
+        : 'MEDIUM'
+
+      const statusRaw = (item.status || (item.isWhistleblowing ? 'INVESTIGATION_ACTIVE' : 'UNDER_REVIEW')).toUpperCase()
+      const status = ['SUBMITTED', 'UNDER_REVIEW', 'INITIATED', 'INVESTIGATION_ACTIVE', 'RESOLVED', 'DISMISSED'].includes(statusRaw)
+        ? statusRaw
+        : 'INVESTIGATION_ACTIVE'
+
+      return {
+        id: item.id,
+        referenceKey: item.caseNo || item.referenceKey || `CBE-CASE-${item.id?.slice(0, 6)}`,
+        category: item.title || item.category || item.summary || 'Whistleblower Report',
+        targetDepartment: item.targetDepartment || item.subjectDepartment || item.department || 'Ethics & Compliance Division',
+        priority: priority as any,
+        status: status as any,
+        submittedAt: item.createdAt || item.reportedAt || item.submittedAt || new Date().toISOString(),
+        updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
+        isAnonymous: Boolean(item.isAnonymous),
+        assignedTo: item.assignedTo || item.currentAssigneeName || undefined,
+      }
+    })
   } catch (error) {
     console.error('Error fetching cases from backend:', error)
     return []
@@ -52,11 +78,58 @@ export async function fetchCaseRegistry(): Promise<CaseSummary[]> {
 
 export async function fetchCaseById(id: string): Promise<CaseDetailedInvestigation | null> {
   try {
-    const response = await apiClient.get<{ success: boolean; data: CaseDetailedInvestigation }>(`/api/Cases/${id}`)
-    if (response.data.success) {
-      return response.data.data
+    const response = await apiClient.get<any>(`/api/Cases/${id}`)
+    const item = response.data?.data || response.data
+    if (!item) return null
+
+    const priorityRaw = (item.priority || 'MEDIUM').toUpperCase()
+    const priority = ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'].includes(priorityRaw)
+      ? priorityRaw
+      : 'MEDIUM'
+
+    const statusRaw = (item.status || (item.isWhistleblowing ? 'INVESTIGATION_ACTIVE' : 'UNDER_REVIEW')).toUpperCase()
+    const status = ['SUBMITTED', 'UNDER_REVIEW', 'INITIATED', 'INVESTIGATION_ACTIVE', 'RESOLVED', 'DISMISSED'].includes(statusRaw)
+      ? statusRaw
+      : 'INVESTIGATION_ACTIVE'
+
+    return {
+      id: item.id,
+      referenceKey: item.caseNo || item.referenceKey || `CBE-CASE-${item.id?.slice(0, 6)}`,
+      category: item.title || item.category || item.summary || 'Whistleblower Case',
+      targetDepartment: item.targetDepartment || item.subjectDepartment || item.department || 'Ethics & Compliance Division',
+      priority: priority as any,
+      status: status as any,
+      submittedAt: item.createdAt || item.reportedAt || item.submittedAt || new Date().toISOString(),
+      updatedAt: item.updatedAt || item.createdAt || new Date().toISOString(),
+      isAnonymous: Boolean(item.isAnonymous),
+      assignedTo: item.assignedTo || item.currentAssigneeName || undefined,
+      reportingMode: item.reportingMode || (item.isAnonymous ? 'anonymous' : 'confidential'),
+      relationship: item.relationship || item.reporter?.reporterType || 'Whistleblower',
+      fullName: item.fullName || item.reporter?.name || undefined,
+      contactEmail: item.contactEmail || item.reporter?.email || undefined,
+      phoneNumber: item.phoneNumber || item.reporter?.phone || undefined,
+      physicalAddress: item.physicalAddress || item.reporter?.physicalAddress || undefined,
+      summary: item.summary || item.title || '',
+      detailedNarrative: item.detailedDescription || item.detailedNarrative || item.description || item.summary || '',
+      incidentStartDate: item.incidentStartDate,
+      incidentEndDate: item.incidentEndDate,
+      incidentLocation: item.location || item.incidentLocation,
+      howAware: item.howBecameAware || item.howAware,
+      whyCorrupt: item.whyBelievedCorrupt || item.whyCorrupt,
+      evidenceInPossession: item.evidenceInPossession,
+      corruptedPersonNames: item.subjectName || item.corruptedPersonNames,
+      jobPositions: item.subjectJobPosition || item.jobPositions,
+      divisionDepartmentBranch: item.subjectDepartment || item.divisionDepartmentBranch,
+      otherIdentifyingInfo: item.subjectIdentifyingInfo || item.otherIdentifyingInfo,
+      evidenceNotInPossession: item.evidenceNotPossessed || item.evidenceNotInPossession,
+      witnesses: item.witnessesList || item.witnesses,
+      priorReports: item.priorReports,
+      resolutionSought: item.resolutionSought,
+      reportRecipient: item.reportRecipient,
+      triageWorkflow: item.triageWorkflow,
+      preliminaryAssessmentReport: item.preliminaryAssessmentReport,
+      fullInvestigation: item.fullInvestigation,
     }
-    return null
   } catch (error) {
     console.error(`Error fetching case ${id} from backend:`, error)
     return null

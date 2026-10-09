@@ -10,11 +10,10 @@ import {
   Save,
   Check,
   FileText,
-  GitBranch,
-  Zap,
 } from 'lucide-react'
 import { fetchCaseById, fetchCaseAssessment, updateCaseTriage, updateCaseFullInvestigation, handoverCase } from '../api/getCases'
 import { getAvailableWorkflowActions, executeWorkflowTransition } from '../api/workflowExecutionApi'
+import { CaseWorkflowActionToolbar } from './CaseWorkflowActionToolbar'
 import { FullInvestigationWorkspace } from './FullInvestigationWorkspace'
 import { TriageStep1Secure } from './triage/TriageStep1Secure'
 import { TriageStep2Review } from './triage/TriageStep2Review'
@@ -33,7 +32,7 @@ export const InvestigationWorkspace: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
   const caseId = id || 'case-02'
 
-  const { data: caseData, isLoading } = useQuery({
+  const { data: caseData, isLoading, refetch } = useQuery({
     queryKey: ['case-detail', caseId],
     queryFn: () => fetchCaseById(caseId),
   })
@@ -44,7 +43,7 @@ export const InvestigationWorkspace: React.FC = () => {
     enabled: !!caseId,
   })
 
-  const { data: availableActions = [], refetch: refetchActions } = useQuery({
+  const { refetch: refetchActions } = useQuery({
     queryKey: ['case-workflow-actions', caseId],
     queryFn: () => getAvailableWorkflowActions(caseId),
     enabled: !!caseId,
@@ -77,14 +76,12 @@ export const InvestigationWorkspace: React.FC = () => {
   const [fullInvestigationState, setFullInvestigationState] = useState<FullInvestigationState | null>(null)
   const [saveSuccess, setSaveSuccess] = useState(false)
   const [showReportDrawer, setShowReportDrawer] = useState(false)
-  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const handleExecuteTransition = async (
     actionCode: string,
     comment?: string,
     onSuccess?: () => void
   ) => {
-    setIsTransitioning(true)
     try {
       const res = await executeWorkflowTransition(caseId, {
         actionCode,
@@ -106,8 +103,6 @@ export const InvestigationWorkspace: React.FC = () => {
     } catch (err: any) {
       toast.error(err?.message || 'Workflow transition failed.')
       if (onSuccess) onSuccess()
-    } finally {
-      setIsTransitioning(false)
     }
   }
 
@@ -416,49 +411,16 @@ export const InvestigationWorkspace: React.FC = () => {
         </div>
       </div>
 
-      {/* 2. Backend Workflow Transitions Bar */}
-      {availableActions.length > 0 && (
-        <div className="bg-gradient-to-r from-purple-50/80 via-white to-amber-50/60 border border-purple-200/80 rounded-2xl p-3 px-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-cbe-purple text-white flex items-center justify-center shrink-0">
-              <GitBranch className="w-3.5 h-3.5" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-slate-900">
-                  Current Stage: {availableActions[0]?.fromStageName || caseData.status}
-                </span>
-                <span className="text-[10px] font-semibold text-cbe-purple bg-purple-100/70 px-2 py-0.5 rounded-full">
-                  {availableActions.length} {availableActions.length === 1 ? 'Action' : 'Actions'} Available
-                </span>
-              </div>
-              <p className="text-[11px] text-slate-500">
-                Backend workflow state transitions permitted for your role:
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {availableActions.map((action) => (
-              <Button
-                key={action.transitionId || action.actionCode}
-                size="sm"
-                disabled={isTransitioning}
-                onClick={() =>
-                  handleExecuteTransition(
-                    action.actionCode,
-                    `Transition ${action.actionName} initiated by ${user?.userName || 'auditor'}.`
-                  )
-                }
-                className="text-xs h-7 px-3 bg-white hover:bg-cbe-purple hover:text-white text-slate-800 border border-slate-300 font-semibold shadow-2xs transition cursor-pointer"
-                title={action.description || action.actionName}
-              >
-                <Zap className="w-3 h-3 text-cbe-gold shrink-0 mr-1" />
-                <span>{action.actionName}</span>
-              </Button>
-            ))}
-          </div>
-        </div>
+      {/* 2. Backend Workflow Transitions Toolbar & Action Modal Engine */}
+      {caseData && (
+        <CaseWorkflowActionToolbar
+          caseId={caseId}
+          caseReferenceKey={caseData.referenceKey}
+          onTransitionCompleted={() => {
+            refetch()
+            refetchActions()
+          }}
+        />
       )}
 
       {/* PHASE 1: TRIAGE WORKFLOW */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import type { UseFormReturn } from 'react-hook-form'
-import { ChevronDown, ShieldCheck, Loader2, ShieldAlert } from 'lucide-react'
+import { ChevronDown, ShieldCheck, Loader2 } from 'lucide-react'
 import type { CorruptionReportInput } from '../../types/report.types'
 import { RESOLUTIONS_SOUGHT } from '@/constants/categories'
 import {
@@ -165,7 +165,15 @@ export const StepPriorActionsResolution: React.FC<StepProps> = ({ form }) => {
           </div>
 
           {/* Confidential Routing Assurance Badge */}
-
+          {selectedSubject && (
+            <div className="flex items-center gap-2 mt-2 px-3 py-2 bg-purple-50/70 border border-purple-200/60 rounded-lg text-xs text-purple-900">
+              <ShieldCheck className="w-4 h-4 text-cbe-purple shrink-0" />
+              <span>
+                Target Handling Recipient: <strong>{selectedSubject.targetRecipient}</strong>
+                {selectedSubject.routingDescription ? ` (${selectedSubject.routingDescription})` : ''}
+              </span>
+            </div>
+          )}
 
           {errors.reportRecipient && (
             <p className="text-xs text-rose-500 mt-1">{errors.reportRecipient.message}</p>

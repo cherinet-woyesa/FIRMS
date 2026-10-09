@@ -66,6 +66,29 @@ export async function fetchIntakeChannels(): Promise<IntakeChannelLookup[]> {
   }
 }
 
+export interface CaseTypeLookup {
+  id: string
+  code: string
+  name: string
+  description?: string
+  isActive?: boolean
+}
+
+export async function fetchCaseTypes(): Promise<CaseTypeLookup[]> {
+  try {
+    const res = await apiClient.get<{ success: boolean; data: CaseTypeLookup[] }>(
+      '/api/case-types'
+    )
+    if (res.data?.success && Array.isArray(res.data.data)) {
+      return res.data.data
+    }
+    return []
+  } catch (error) {
+    console.error('Failed to fetch case types:', error)
+    return []
+  }
+}
+
 export interface AllegationSubjectTypeLookup {
   id: number
   name: string

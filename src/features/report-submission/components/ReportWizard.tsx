@@ -46,6 +46,7 @@ export const ReportWizard: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(1)
   const [submissionResult, setSubmissionResult] = useState<ReportSubmissionResult | null>(null)
   const [stepError, setStepError] = useState<string | null>(null)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
   const form = useForm<CorruptionReportInput>({
     resolver: zodResolver(corruptionReportSchema),
@@ -157,11 +158,11 @@ export const ReportWizard: React.FC = () => {
   const onFinalSubmit = async (data: CorruptionReportInput) => {
     setStepError(null)
     try {
-      const result = await submitWhistleblowerReport(data)
+      const result = await submitWhistleblowerReport(data, uploadedFiles)
       setSubmissionResult(result)
-    } catch (err: unknown) {
+    } catch (err: any) {
       console.error(err)
-      setStepError('Failed to transmit secure report. Please try again.')
+      setStepError(err?.message || 'Failed to transmit secure report. Please try again.')
     }
   }
 
@@ -268,7 +269,9 @@ export const ReportWizard: React.FC = () => {
         {currentStep === 1 && <StepReporterInfo form={form} />}
         {currentStep === 2 && <StepIncidentDetails form={form} />}
         {currentStep === 3 && <StepCorruptedParties form={form} />}
-        {currentStep === 4 && <StepEvidenceWitnesses form={form} />}
+        {currentStep === 4 && (
+          <StepEvidenceWitnesses form={form} onFilesChange={setUploadedFiles} />
+        )}
         {currentStep === 5 && <StepPriorActionsResolution form={form} />}
 
         {/* Step Navigation Controls */}

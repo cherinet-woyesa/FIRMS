@@ -31,7 +31,7 @@ export const InsertStageSlideOver: React.FC<Props> = ({ isOpen, onClose, version
         reset,
         formState: { errors }
     } = useForm<FormData>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(schema) as any,
         defaultValues: {
             isInitial: false,
             isFinal: false
@@ -81,7 +81,7 @@ export const InsertStageSlideOver: React.FC<Props> = ({ isOpen, onClose, version
                         </button>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
+                    <form onSubmit={handleSubmit(onSubmit as any)} className="flex-1 overflow-y-auto p-6 space-y-6">
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-1">
                                 Stage Name
@@ -165,7 +165,7 @@ export const InsertStageSlideOver: React.FC<Props> = ({ isOpen, onClose, version
                             Cancel
                         </button>
                         <button
-                            onClick={handleSubmit(onSubmit)}
+                            onClick={handleSubmit(onSubmit as any)}
                             disabled={isPending}
                             className="px-4 py-2 text-sm font-bold text-white bg-[#95298E] rounded-lg hover:bg-purple-800 transition-colors flex items-center justify-center min-w-[140px]"
                         >

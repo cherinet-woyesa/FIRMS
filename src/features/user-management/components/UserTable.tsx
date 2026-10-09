@@ -61,7 +61,10 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
             {data.items.map((user) => {
-              const initials = `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+              const fInitial = (user.firstName?.trim() || user.userName?.trim() || 'U').charAt(0);
+              const lInitial = (user.lastName?.trim() || '').charAt(0);
+              const initials = `${fInitial}${lInitial}`.toUpperCase() || 'U';
+              const displayName = [user.firstName, user.lastName].filter(Boolean).join(' ') || user.userName || user.email || 'User';
               
               // Only Employee and External are returned by the backend currently
               const isEmployee = user.userType === 'Employee';
@@ -75,7 +78,7 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
                       </div>
                       <div className="ml-4 flex flex-col justify-center">
                         <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-800 transition-colors">
-                          {user.firstName} {user.lastName}
+                          {displayName}
                         </span>
                         <span className="text-[13px] text-gray-500">{user.email}</span>
                       </div>

@@ -29,7 +29,7 @@ export const CreateDefinitionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
         reset,
         formState: { errors }
     } = useForm<FormData>({
-        resolver: zodResolver(schema),
+        resolver: zodResolver(schema) as any,
         defaultValues: {
             isActive: true
         }
@@ -63,7 +63,7 @@ export const CreateDefinitionModal: React.FC<Props> = ({ isOpen, onClose, onSucc
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit(onSubmit)} className="p-6 flex-1 overflow-y-auto">
+                <form onSubmit={handleSubmit(onSubmit as any)} className="p-6 flex-1 overflow-y-auto">
                     <div className="space-y-5">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">

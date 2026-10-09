@@ -5,6 +5,7 @@ import type { CorruptionReportInput } from '../../types/report.types'
 
 interface StepProps {
   form: UseFormReturn<CorruptionReportInput>
+  onFilesChange?: (files: File[]) => void
 }
 
 function formatBytes(bytes: number, decimals = 1): string {
@@ -16,7 +17,7 @@ function formatBytes(bytes: number, decimals = 1): string {
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`
 }
 
-export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
+export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form, onFilesChange }) => {
   const {
     register,
     setValue,
@@ -26,26 +27,35 @@ export const StepEvidenceWitnesses: React.FC<StepProps> = ({ form }) => {
 
   const attachedFiles = watch('attachedFiles') || []
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [rawFiles, setRawFiles] = useState<File[]>([])
   const [isDragging, setIsDragging] = useState(false)
 
   const handleFilesAdded = (files: FileList | null) => {
     if (!files || files.length === 0) return
-    const newFiles: string[] = []
+    const newFileNames: string[] = []
+    const newRaw: File[] = []
     for (let i = 0; i < files.length; i++) {
       const file = files[i]
+      newRaw.push(file)
       const formatted = `${file.name} (${formatBytes(file.size)})`
-      newFiles.push(formatted)
+      newFileNames.push(formatted)
     }
-    const updated = [...attachedFiles, ...newFiles]
-    setValue('attachedFiles', updated)
+    const updatedNames = [...attachedFiles, ...newFileNames]
+    const updatedRaw = [...rawFiles, ...newRaw]
+    setValue('attachedFiles', updatedNames)
+    setRawFiles(updatedRaw)
+    if (onFilesChange) onFilesChange(updatedRaw)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
   }
 
   const handleRemoveFile = (indexToRemove: number) => {
-    const updated = attachedFiles.filter((_, idx) => idx !== indexToRemove)
-    setValue('attachedFiles', updated)
+    const updatedNames = attachedFiles.filter((_, idx) => idx !== indexToRemove)
+    const updatedRaw = rawFiles.filter((_, idx) => idx !== indexToRemove)
+    setValue('attachedFiles', updatedNames)
+    setRawFiles(updatedRaw)
+    if (onFilesChange) onFilesChange(updatedRaw)
   }
 
   const handleDragOver = (e: React.DragEvent) => {

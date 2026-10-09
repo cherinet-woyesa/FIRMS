@@ -1,5 +1,5 @@
-import React, { useMemo, useEffect, useState } from 'react';
-import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, useNodesState, useEdgesState, MiniMap, Panel } from '@xyflow/react';
+import React, { useEffect, useState } from 'react';
+import { ReactFlow, Background, Controls, Node, Edge, Position, MarkerType, useNodesState, useEdgesState, MiniMap } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { WorkflowVersion } from '../types';
 import { useWorkflowStages, useWorkflowTransitionsByVersion } from '../api';
@@ -55,8 +55,8 @@ export const WorkflowGraphView: React.FC<Props> = ({ version }) => {
     const { data: stages, isLoading: loadingStages, isError: errorStages } = useWorkflowStages(version.id);
     const { data: transitions, isLoading: loadingTransitions, isError: errorTransitions } = useWorkflowTransitionsByVersion(version.id);
 
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
 
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
@@ -112,7 +112,7 @@ export const WorkflowGraphView: React.FC<Props> = ({ version }) => {
         setEdges([...layoutedEdges]);
     }, [stages, transitions, setNodes, setEdges]);
 
-    const handleNodeClick = (event: React.MouseEvent, node: Node) => {
+    const handleNodeClick = (_event: React.MouseEvent, node: Node) => {
         if (version.isActive) {
             // Version is active, do not allow editing
             return;

@@ -13,7 +13,7 @@ export const useRegisterAdUser = () => {
   
   return useMutation({
     mutationFn: registerAdUser,
-    onSuccess: (data) => {
+    onSuccess: () => {
       // Invalidate users list to trigger a refetch
       queryClient.invalidateQueries({ queryKey: ['users'] });
     },

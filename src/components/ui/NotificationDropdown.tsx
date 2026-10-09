@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { Bell, Check } from 'lucide-react'
+import { useSelector } from 'react-redux'
+import type { RootState } from '@/store/store'
 import { apiClient as api } from '@/lib/apiClient'
 import { useNavigate } from 'react-router-dom'
 
@@ -19,22 +21,37 @@ export const NotificationDropdown: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
 
-  // Fetch unread notifications
-  const fetchNotifications = async () => {
-    try {
-      const response = await api.get<NotificationDto[]>('/api/Notifications?onlyUnread=true')
-      setNotifications(response.data)
-    } catch (error) {
-      console.error('Failed to fetch notifications:', error)
+  const { user } = useSelector((state: RootState) => state.auth)
+  const userId = user?.userId
+
+  // Fetch unread notifications for current authenticated user
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) {
+      setNotifications([])
+      return
     }
-  }
+
+    try {
+      const response = await api.get<NotificationDto[]>(`/api/Notifications/my/unread?userId=${userId}`)
+      if (Array.isArray(response.data)) {
+        setNotifications(response.data)
+      } else {
+        setNotifications([])
+      }
+    } catch {
+      // Gracefully handle if notifications service or endpoint is unavailable
+      setNotifications([])
+    }
+  }, [userId])
 
   useEffect(() => {
     fetchNotifications()
-    // Poll every 30 seconds
+    // Poll every 30 seconds only if user is logged in
+    if (!userId) return
+
     const interval = setInterval(fetchNotifications, 30000)
     return () => clearInterval(interval)
-  }, [])
+  }, [fetchNotifications, userId])
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -54,7 +71,7 @@ export const NotificationDropdown: React.FC = () => {
   const markAsRead = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation()
     try {
-      await api.post(`/api/Notifications/${id}/read`)
+      await api.put(`/api/Notifications/${id}/read`)
       setNotifications(prev => prev.filter(n => n.id !== id))
     } catch (error) {
       console.error('Failed to mark notification as read:', error)
@@ -70,8 +87,9 @@ export const NotificationDropdown: React.FC = () => {
   }
 
   const markAllAsRead = async () => {
+    if (!userId) return
     try {
-      await api.post('/api/Notifications/read-all')
+      await api.put(`/api/Notifications/read-all?userId=${userId}`)
       setNotifications([])
     } catch (error) {
       console.error('Failed to mark all as read:', error)

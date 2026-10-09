@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import { BaseEdge, EdgeLabelRenderer, EdgeProps, getSmoothStepPath } from '@xyflow/react';
-import { Play, CheckSquare, MessageSquare, UserPlus, X, CornerDownRight } from 'lucide-react';
+import { Play, CheckSquare, MessageSquare, UserPlus, CornerDownRight } from 'lucide-react';
 
 export const CustomTransitionEdge: React.FC<EdgeProps> = ({
-    id,
     sourceX,
     sourceY,
     targetX,

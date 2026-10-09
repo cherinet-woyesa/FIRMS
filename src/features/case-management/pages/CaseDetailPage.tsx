@@ -15,6 +15,7 @@ import {
   HelpCircle,
 } from 'lucide-react'
 import { fetchCaseById } from '../api/getCases'
+import { CaseWorkflowActionToolbar } from '../components/CaseWorkflowActionToolbar'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/feedback/Spinner'
@@ -26,7 +27,7 @@ export const CaseDetailPage: React.FC = () => {
   const navigate = useNavigate()
   const caseId = id || ''
 
-  const { data: caseData, isLoading } = useQuery({
+  const { data: caseData, isLoading, refetch } = useQuery({
     queryKey: ['case-detail', caseId],
     queryFn: () => fetchCaseById(caseId),
     enabled: Boolean(caseId),
@@ -123,6 +124,13 @@ export const CaseDetailPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      {/* Case Workflow Action Engine Toolbar & Stage Transition Controls */}
+      <CaseWorkflowActionToolbar
+        caseId={caseData.id}
+        caseReferenceKey={caseData.referenceKey}
+        onTransitionCompleted={() => refetch()}
+      />
 
       {/* 2. Quick Overview Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
