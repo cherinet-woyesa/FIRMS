@@ -4,7 +4,8 @@ import { UserFilters } from '../components/UserFilters';
 import { UserTable } from '../components/UserTable';
 import { UserRegistrationModal } from '../modals/UserRegistrationModal';
 import { AssignRoleModal } from '../modals/AssignRoleModal';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, UserCheck, Briefcase, Globe } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
 import type { UserData } from '../types';
 
 export const UserManagementPage: React.FC = () => {
@@ -39,34 +40,82 @@ export const UserManagementPage: React.FC = () => {
     setAssignRoleModalOpen(true);
   };
 
+  const items = data?.data?.items || [];
+  const totalCount = data?.data?.totalCount || items.length;
+  const activeCount = items.filter((u) => u.isActive).length;
+  const employeeCount = items.filter((u) => u.userType === 'Employee').length;
+  const externalCount = items.filter((u) => u.userType === 'External').length;
+
   return (
-    <div className="w-full p-4 sm:p-6 lg:p-8 space-y-6">
+    <div className="space-y-6">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <div className="p-2 bg-brand-100 rounded-lg">
-              <Users className="h-6 w-6 text-brand-700" />
-            </div>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             User Management
           </h1>
-          <p className="text-sm text-gray-500 mt-1 ml-12">
-            Manage system users, their access levels, and roles.
+          <p className="text-xs sm:text-sm text-slate-600 mt-1">
+            Manage system users, access credentials, organizational units, and role permissions.
           </p>
         </div>
-        
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-[#95298E] hover:bg-[#792072] text-white text-sm font-semibold rounded-lg shadow hover:shadow-md transform hover:-translate-y-0.5 transition-all duration-200 active:scale-[0.98]"
-        >
-          <Plus className="h-4 w-4" />
-          Add New User
-        </button>
+
+        <div className="flex items-center gap-2.5">
+          <Button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-cbe-purple hover:bg-cbe-purple-700 text-white font-medium text-xs flex items-center justify-center gap-2 px-4 shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New User</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Users</p>
+            <p className="text-2xl font-bold text-slate-900 mt-1">{totalCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-purple-50 text-cbe-purple flex items-center justify-center">
+            <Users className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Active Accounts</p>
+            <p className="text-2xl font-bold text-emerald-600 mt-1">{activeCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+            <UserCheck className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bank Employees</p>
+            <p className="text-2xl font-bold text-indigo-600 mt-1">{employeeCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <Briefcase className="w-5 h-5" />
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-xs flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">External Users</p>
+            <p className="text-2xl font-bold text-amber-600 mt-1">{externalCount}</p>
+          </div>
+          <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+            <Globe className="w-5 h-5" />
+          </div>
+        </div>
       </div>
 
       {isError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm font-medium">
-          Error loading users: {error instanceof Error ? error.message : 'Unknown error occurred'}
+        <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs flex items-center justify-between">
+          <span>Error loading users: {error instanceof Error ? error.message : 'Unknown error occurred'}</span>
         </div>
       )}
 

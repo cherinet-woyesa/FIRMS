@@ -37,29 +37,29 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden flex flex-col font-sans">
+    <div className="bg-white rounded-xl shadow-xs border border-slate-200 overflow-hidden flex flex-col">
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-100">
-          <thead className="bg-gray-50">
+        <table className="w-full text-left text-xs sm:text-sm">
+          <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold uppercase text-[11px] tracking-wider">
             <tr>
-              <th scope="col" className="px-6 py-3.5 text-left text-xs font-semibold text-gray-500 tracking-wide">
+              <th scope="col" className="px-6 py-3.5">
                 User
               </th>
-              <th scope="col" className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 tracking-wide">
+              <th scope="col" className="px-6 py-3.5">
                 Role & Type
               </th>
-              <th scope="col" className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 tracking-wide">
+              <th scope="col" className="px-6 py-3.5">
                 Employee ID
               </th>
-              <th scope="col" className="px-4 py-3.5 text-left text-xs font-semibold text-gray-500 tracking-wide">
+              <th scope="col" className="px-6 py-3.5">
                 Status
               </th>
-              <th scope="col" className="px-5 py-3.5 text-right text-xs font-semibold text-gray-500 tracking-wide">
+              <th scope="col" className="px-6 py-3.5 text-right">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {data.items.map((user) => {
               const fInitial = (user.firstName?.trim() || user.userName?.trim() || 'U').charAt(0);
               const lInitial = (user.lastName?.trim() || '').charAt(0);
@@ -70,59 +70,59 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
               const isEmployee = user.userType === 'Employee';
 
               return (
-                <tr key={user.id} className="hover:bg-gray-50/50 transition-colors group">
+                <tr key={user.id} className="hover:bg-slate-50/80 transition-colors group">
                   <td className="px-6 py-4 whitespace-nowrap min-w-[250px]">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center font-medium tracking-wide text-sm bg-brand-700/10 text-brand-700">
+                      <div className="flex-shrink-0 h-9 w-9 rounded-full flex items-center justify-center font-bold text-xs bg-purple-50 text-cbe-purple border border-purple-100">
                         {initials}
                       </div>
-                      <div className="ml-4 flex flex-col justify-center">
-                        <span className="text-sm font-semibold text-gray-900 group-hover:text-brand-800 transition-colors">
+                      <div className="ml-3.5 flex flex-col justify-center">
+                        <span className="text-xs sm:text-sm font-semibold text-slate-900 group-hover:text-cbe-purple transition-colors">
                           {displayName}
                         </span>
-                        <span className="text-[13px] text-gray-500">{user.email}</span>
+                        <span className="text-xs text-slate-500">{user.email}</span>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[13px] font-medium ${
-                      isEmployee ? 'bg-brand-50 text-brand-700' : 'bg-blue-50 text-blue-700'
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+                      isEmployee ? 'bg-purple-50 text-cbe-purple border border-purple-200/60' : 'bg-blue-50 text-blue-700 border border-blue-200/60'
                     }`}>
                       {user.userType}
                     </span>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-[13px] text-gray-600 font-medium">
-                      {user.employeeId || <span className="text-gray-400 italic">N/A</span>}
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <div className="text-xs text-slate-600 font-medium font-mono">
+                      {user.employeeId || <span className="text-slate-400 italic font-sans">N/A</span>}
                     </div>
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap">
                     {user.isActive ? (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[13px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-100/50">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
                         Active
                       </span>
                     ) : (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[13px] font-medium bg-gray-100 text-gray-600 border border-gray-200/50">
-                        <span className="w-1.5 h-1.5 rounded-full bg-gray-400 mr-1.5"></span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
                         Inactive
                       </span>
                     )}
                   </td>
-                  <td className="px-5 py-4 whitespace-nowrap text-right">
+                  <td className="px-6 py-4 whitespace-nowrap text-right">
                     <div className="relative inline-block text-left">
                       <details className="group">
-                        <summary className="p-1.5 text-gray-400 hover:text-brand-700 hover:bg-brand-50 rounded-md transition-colors cursor-pointer list-none flex items-center justify-center">
+                        <summary className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors cursor-pointer list-none inline-flex items-center justify-center">
                           <MoreVertical className="h-4 w-4" />
                         </summary>
-                        <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg">
+                        <div className="absolute right-0 z-20 mt-1 w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg py-1">
                           <button
                             type="button"
                             onClick={() => onAssignRole(user)}
-                            className="flex w-full items-center gap-3 px-3 py-2 text-left text-[13px] font-medium text-gray-700 hover:bg-gray-50 hover:text-brand-700 transition-colors"
+                            className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-purple-50 hover:text-cbe-purple transition-colors cursor-pointer"
                           >
-                            <BadgeCheck className="h-4 w-4 text-[#95298E]" />
-                            Assign Role
+                            <BadgeCheck className="h-4 w-4 text-cbe-purple" />
+                            <span>Assign Role</span>
                           </button>
                         </div>
                       </details>
@@ -136,8 +136,8 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
       </div>
 
       {/* Pagination Footer */}
-      <div className="bg-white px-6 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4 text-sm text-gray-500">
+      <div className="bg-white px-6 py-3.5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <span>Rows per page:</span>
             <select
@@ -146,16 +146,16 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
                 onPageSizeChange(Number(e.target.value));
                 onPageChange(1);
               }}
-              className="bg-gray-50 border border-gray-200 text-gray-700 rounded-md px-2 py-1 text-[13px] focus:ring-brand-500 focus:border-brand-500 outline-none cursor-pointer"
+              className="bg-white border border-slate-300 text-slate-700 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-slate-900 outline-none cursor-pointer"
             >
               {[10, 20, 50, 100].map(size => (
                 <option key={size} value={size}>{size}</option>
               ))}
             </select>
           </div>
-          <div className="hidden sm:block border-l border-gray-200 h-4"></div>
+          <div className="hidden sm:block border-l border-slate-200 h-4"></div>
           <div>
-            Showing <span className="font-semibold text-gray-900">{((page - 1) * data.pageSize) + 1}</span> to <span className="font-semibold text-gray-900">{Math.min(page * data.pageSize, data.totalCount)}</span> of <span className="font-semibold text-gray-900">{data.totalCount}</span>
+            Showing <span className="font-semibold text-slate-900">{((page - 1) * data.pageSize) + 1}</span> to <span className="font-semibold text-slate-900">{Math.min(page * data.pageSize, data.totalCount)}</span> of <span className="font-semibold text-slate-900">{data.totalCount}</span>
           </div>
         </div>
         
@@ -163,7 +163,7 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page === 1}
-            className="p-1.5 border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50 hover:text-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -180,10 +180,10 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
                 <button
                   key={pageNum}
                   onClick={() => onPageChange(pageNum)}
-                  className={`w-7 h-7 mx-0.5 flex items-center justify-center rounded-md text-[13px] font-semibold transition-all ${
+                  className={`w-7 h-7 mx-0.5 flex items-center justify-center rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                     pageNum === page
-                      ? 'bg-brand-700 text-white shadow-sm'
-                      : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900'
+                      ? 'bg-cbe-purple text-white shadow-xs'
+                      : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
                   {pageNum}
@@ -195,7 +195,7 @@ export const UserTable: React.FC<UserTableProps> = ({ data, isLoading, page, onP
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={page >= data.totalPages}
-            className="p-1.5 border border-gray-200 rounded-md text-gray-500 hover:bg-gray-50 hover:text-brand-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 border border-slate-200 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-800 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             <ChevronRight className="h-4 w-4" />
           </button>

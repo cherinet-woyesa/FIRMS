@@ -39,53 +39,50 @@ export const UserFilters: React.FC<UserFiltersProps> = ({ onSearch, onFilterChan
   const hasActiveFilters = searchTerm !== '' || isActive !== '' || userType !== '';
 
   return (
-    <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex flex-col sm:flex-row gap-4 items-center justify-between mb-6">
-      <div className="relative w-full sm:w-96">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-4 w-4 text-brand-700/50" />
-        </div>
+    <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+      <div className="relative w-full sm:w-80">
+        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         <input
           type="text"
-          placeholder="Search users..."
+          placeholder="Search users by name, email, employee ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="block w-full pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm transition-colors"
+          className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white placeholder-slate-400 transition"
         />
       </div>
 
-      <div className="flex w-full sm:w-auto items-center gap-3">
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-gray-400" />
-          <span className="text-sm font-medium text-gray-700">Filters:</span>
+      <div className="flex w-full sm:w-auto items-center gap-2.5 flex-wrap sm:flex-nowrap">
+        <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium">
+          <Filter className="w-3.5 h-3.5" />
+          <span>Filters:</span>
         </div>
-        
+
         <select
           value={isActive}
           onChange={(e) => handleFilterChange(e.target.value, userType)}
-          className="block w-full sm:w-32 py-2 px-3 border border-gray-200 bg-white rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm"
+          className="py-1.5 px-2.5 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-xs text-slate-700 cursor-pointer"
         >
           <option value="">All Status</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
+          <option value="true">Active Only</option>
+          <option value="false">Inactive Only</option>
         </select>
 
         <select
           value={userType}
           onChange={(e) => handleFilterChange(isActive, e.target.value)}
-          className="block w-full sm:w-36 py-2 px-3 border border-gray-200 bg-white rounded-lg focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 text-sm"
+          className="py-1.5 px-2.5 border border-slate-300 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-xs text-slate-700 cursor-pointer"
         >
           <option value="">All Types</option>
-          <option value="Employee">Employee</option>
-          <option value="External">External</option>
+          <option value="Employee">Bank Employee</option>
+          <option value="External">External User</option>
         </select>
 
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="p-2 text-gray-400 hover:text-brand-700 hover:bg-brand-50 rounded-lg transition-colors"
-            title="Clear filters"
+            className="text-xs text-slate-500 hover:text-slate-800 underline cursor-pointer ml-1"
           >
-            <X className="h-4 w-4" />
+            Clear filters
           </button>
         )}
       </div>
